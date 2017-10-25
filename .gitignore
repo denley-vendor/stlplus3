@@ -367,5 +367,6 @@ __pycache__/
 # OpenCover UI analysis results
 OpenCover/
 
+.DS_Store
 .svn/
 third_party/
