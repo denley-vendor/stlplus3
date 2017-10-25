@@ -24,8 +24,8 @@ void stlplus::dump_cstring(stlplus::dump_context& context, const char* data) thr
   // however, if it is non-null and this is the first sight of the address, dump the contents
   if (data && !mapping.first)
   {
-    unsigned size = strlen(data);
-    stlplus::dump_unsigned(context,size);
+    size_t size = strlen(data);
+    stlplus::dump_size_t(context,size);
     for (unsigned i = 0; i < size; i++)
       stlplus::dump_char(context,data[i]);
   }
@@ -49,10 +49,10 @@ void stlplus::restore_cstring(restore_context& context, char*& data) throw(stlpl
   {
     // this pointer has never been seen before and is non-null
     // restore the string
-    unsigned size = 0;
-    stlplus::restore_unsigned(context,size);
+    size_t size = 0;
+    stlplus::restore_size_t(context,size);
     data = new char[size+1];
-    for (unsigned i = 0; i < size; i++)
+    for (size_t i = 0; i < size; i++)
       stlplus::restore_char(context,data[i]);
     data[size] = '\0';
     // add this pointer to the set of already seen objects

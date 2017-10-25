@@ -1,14 +1,12 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!DOCTYPE html>
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-<meta http-equiv="Content-Style-Type" content="text/css">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 <title>strings/string_int.hpp</title>
-<link rel="stylesheet" type="text/css" href="shCore.css">
-<link rel="stylesheet" type="text/css" href="shThemeSTLplus.css">
+<link rel="stylesheet" type="text/css" href="shCore.css"/>
+<link rel="stylesheet" type="text/css" href="shThemeSTLplus.css"/>
 <script type="text/javascript" src="shCore.js"></script>
 <script type="text/javascript" src="shBrushCpp.js"></script>
-<meta http-equiv="generator" content="cpp2html C++ colouriser by Andy Rushton">
 </head>
 <body>
 <h1>strings/string_int.hpp</h1>
@@ -87,6 +85,25 @@ namespace stlplus
                                       unsigned width = 0)
     throw(std::invalid_argument);
 
+  std::string longlong_to_string(long long i,
+                                 unsigned radix = 10,
+                                 radix_display_t display = radix_c_style_or_hash,
+                                 unsigned width = 0)
+    throw(std::invalid_argument);
+
+  std::string unsigned_longlong_to_string(unsigned long long i,
+                                          unsigned radix = 10,
+                                          radix_display_t display = radix_c_style_or_hash,
+                                          unsigned width = 0)
+    throw(std::invalid_argument);
+
+  // address displayed as an integer
+  std::string address_to_string(const void*,
+                                unsigned radix = 16,
+                                radix_display_t display = radix_c_style_or_hash,
+                                unsigned width = 0)
+    throw(std::invalid_argument);
+
   ////////////////////////////////////////////////////////////////////////////////
   // Convert a string to an integer type
   ////////////////////////////////////////////////////////////////////////////////
@@ -124,6 +141,11 @@ namespace stlplus
 
   unsigned long string_to_unsigned_long(const std::string&amp; value,
                                         unsigned radix = 0)
+    throw(std::invalid_argument);
+
+  // string representation of a pointer as an integer
+  void* string_to_address(const std::string&amp; value,
+                          unsigned radix = 0)
     throw(std::invalid_argument);
 
   ////////////////////////////////////////////////////////////////////////////////

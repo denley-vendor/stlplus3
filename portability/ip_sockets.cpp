@@ -17,6 +17,7 @@
 
 #ifdef MSWINDOWS
 // Windoze-specific includes
+
 #include <winsock2.h>
 #define ERRNO WSAGetLastError()
 #define HERRNO WSAGetLastError()
@@ -25,12 +26,13 @@
 #define SHUT_RDWR SD_BOTH
 #define SOCKLEN_T int
 #define SEND_FLAGS 0
-#if _MSC_VER < 1600 // not defined before Visual Studio 10
-#define EINPROGRESS WSAEINPROGRESS
-#define EWOULDBLOCK WSAEWOULDBLOCK
-#define ECONNRESET WSAECONNRESET
-#endif
+// on Windows, these options have a different prefix but the same function as on Unix
+#define INPROGRESS WSAEINPROGRESS
+#define WOULDBLOCK WSAEWOULDBLOCK
+#define CONNRESET WSAECONNRESET
+
 #else
+
 // Generic Unix includes
 // fix for older versions of Darwin?
 #define _BSD_SOCKLEN_T_ int
@@ -50,7 +52,17 @@
 #define IOCTL ::ioctl
 #define CLOSE ::close
 #define SOCKLEN_T socklen_t
+#ifdef __APPLE__
+// fix from IngwiePhoenix for OSX
+// https://github.com/Deskshell-Core/PhoenixEngine
+#define SEND_FLAGS SO_NOSIGPIPE
+#else
 #define SEND_FLAGS MSG_NOSIGNAL
+#endif
+#define INPROGRESS EINPROGRESS
+#define WOULDBLOCK EWOULDBLOCK
+#define CONNRESET ECONNRESET
+
 #ifdef SOLARIS
 // Sun put some definitions in a different place
 #include <sys/filio.h>
@@ -77,7 +89,7 @@ namespace stlplus
                   MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), // "User default language"
                   (LPTSTR)&message,
                   0,0);
-    if (message) 
+    if (message)
     {
       result = message;
       LocalFree(message);
@@ -181,7 +193,7 @@ namespace stlplus
   public:
 
     ////////////////////////////////////////////////////////////////////////////
-    // PIMPL alias counting 
+    // PIMPL alias counting
 
     void increment(void)
       {
@@ -258,7 +270,7 @@ namespace stlplus
         }
         return true;
       }
-    
+
     // function for performing IP lookup (i.e. gethostbyname)
     // could be standalone but making it a member means that it can use the socket's error handler
     // - remote_address: IP name or number
@@ -350,7 +362,7 @@ namespace stlplus
         }
         return true;
       }
-    
+
     // bind the socket to a port so that it can receive from any address
     bool bind_any(unsigned short local_port)
       {
@@ -422,10 +434,10 @@ namespace stlplus
         // if connectioned it makes the connection
         if (::connect(m_socket, &connect_data, sizeof(connect_data)) == SOCKET_ERROR)
         {
-          // the socket is non-blocking, so connect will almost certainly fail with EINPROGRESS which is not an error
+          // the socket is non-blocking, so connect will almost certainly fail with INPROGRESS which is not an error
           // only catch real errors
           int error = ERRNO;
-          if (error != EINPROGRESS && error != EWOULDBLOCK)
+          if (error != INPROGRESS && error != WOULDBLOCK)
           {
             set_error(error);
             return false;
@@ -440,8 +452,8 @@ namespace stlplus
     bool connected(unsigned wait)
       {
         if (!initialised()) return false;
-        // Linux and Windows docs say test with select for whether socket is
-        // writable. However, a problem has been reported with Linux whereby
+        // Gnu/Linux and Windows docs say test with select for whether socket is
+        // writable. However, a problem has been reported with Gnu/Linux whereby
         // the OS will report a socket as writable when it isn't
         // first use the select method
         if (!select(false, true, wait))
@@ -451,13 +463,14 @@ namespace stlplus
         return true;
 #else
         // Posix version needs further checking using the socket options
-        // DJDM: socket has returned EINPROGRESS on the first attempt at connection
+        // http://linux.die.net/man/2/connect see description of EINPROGRESS
+        // DJDM: socket has returned INPROGRESS on the first attempt at connection
         // it has also returned that it can be written to
         // we must now ask it if it has actually connected - using getsockopt
         int error = 0;
         socklen_t serror = sizeof(int);
-        if (::getsockopt(m_socket, SOL_SOCKET, SO_ERROR, &error, &serror)==0)
-          // handle the error value - one of them means that the socket has connected
+        if (::getsockopt(m_socket, SOL_SOCKET, SO_ERROR, &error, &serror) == 0)
+          // handle the error value - the EISCONN error actually means that the socket has connected (so no error then)
           if (!error || error == EISCONN)
             return true;
         return false;
@@ -499,7 +512,7 @@ namespace stlplus
       {
         if (!initialised()) return false;
         // send the data - this will never block but may not send all the data
-        int bytes = ::send(m_socket, data.c_str(), data.size(), SEND_FLAGS);
+        int bytes = ::send(m_socket, data.c_str(), (int)data.size(), SEND_FLAGS);
         if (bytes == SOCKET_ERROR)
         {
           set_error(ERRNO);
@@ -518,13 +531,13 @@ namespace stlplus
         int bytes = 0;
         if (!address)
         {
-          bytes = ::send(m_socket, data.c_str(), data.size(), SEND_FLAGS);
+          bytes = ::send(m_socket, data.c_str(), (int)data.size(), SEND_FLAGS);
         }
         else
         {
           sockaddr saddress;
           convert_address(address, port, saddress);
-          bytes = ::sendto(m_socket, data.c_str(), data.size(), SEND_FLAGS, &saddress, sizeof(saddress));
+          bytes = ::sendto(m_socket, data.c_str(), (int)data.size(), SEND_FLAGS, &saddress, sizeof(saddress));
         }
         if (bytes == SOCKET_ERROR)
         {
@@ -597,7 +610,7 @@ namespace stlplus
           // UDP connection reset means that a previous sent failed to deliver cos the address was unknown
           // this is NOT an error with the sending server socket, which IS still usable
           int error = ERRNO;
-          if (error != ECONNRESET)
+          if (error != CONNRESET)
           {
             delete[] buffer;
             set_error(error);

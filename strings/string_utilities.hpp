@@ -37,9 +37,9 @@ namespace stlplus
   // whitespace trimming
   ////////////////////////////////////////////////////////////////////////////////
 
-  std::string trim_left(const std::string& val, char flag = ' ');
-  std::string trim_right(const std::string& val, char flag = ' ');
-  std::string trim(const std::string& val, char flag = ' ');
+  std::string trim_left(const std::string& val);
+  std::string trim_right(const std::string& val);
+  std::string trim(const std::string& val);
 
   ////////////////////////////////////////////////////////////////////////////////
   // case conversion for std::strings

@@ -90,13 +90,13 @@ namespace stlplus
   // mode conversions
 
   template<typename K, typename T, class H, class E, typename V>
-  TYPENAME hash_iterator<K,T,H,E,V>::const_iterator hash_iterator<K,T,H,E,V>::constify(void) const
+  typename hash_iterator<K,T,H,E,V>::const_iterator hash_iterator<K,T,H,E,V>::constify(void) const
   {
     return hash_iterator<K,T,H,E,const std::pair<const K,T> >(*this);
   }
 
   template<typename K, typename T, class H, class E, typename V>
-  TYPENAME hash_iterator<K,T,H,E,V>::iterator hash_iterator<K,T,H,E,V>::deconstify(void) const
+  typename hash_iterator<K,T,H,E,V>::iterator hash_iterator<K,T,H,E,V>::deconstify(void) const
   {
     return hash_iterator<K,T,H,E,std::pair<const K,T> >(*this);
   }
@@ -104,12 +104,12 @@ namespace stlplus
   // increment operator looks for the next element in the table
   // if there isn't one, then this becomes an end() iterator with m_bin = m_bins
   template<typename K, typename T, class H, class E, typename V>
-  TYPENAME hash_iterator<K,T,H,E,V>::this_iterator& hash_iterator<K,T,H,E,V>::operator ++ (void)
+  typename hash_iterator<K,T,H,E,V>::this_iterator& hash_iterator<K,T,H,E,V>::operator ++ (void)
     throw(null_dereference,end_dereference)
   {
     this->assert_valid();
     if (this->node()->m_next)
-      set(this->node()->m_next->m_master);
+      this->set(this->node()->m_next->m_master);
     else
     {
       // failing that, subsequent hash values are tried until either an element is found or there are no more bins
@@ -119,7 +119,7 @@ namespace stlplus
       for(current_bin++; !element && (current_bin < this->owner()->m_bins); current_bin++)
         element = this->owner()->m_values[current_bin];
       if (element)
-        set(element->m_master);
+        this->set(element->m_master);
       else
         this->set_end();
     }
@@ -128,7 +128,7 @@ namespace stlplus
 
   // post-increment is defined in terms of pre-increment
   template<typename K, typename T, class H, class E, typename V>
-  TYPENAME hash_iterator<K,T,H,E,V>::this_iterator hash_iterator<K,T,H,E,V>::operator ++ (int)
+  typename hash_iterator<K,T,H,E,V>::this_iterator hash_iterator<K,T,H,E,V>::operator ++ (int)
     throw(null_dereference,end_dereference)
   {
     hash_iterator<K,T,H,E,V> old(*this);
@@ -141,7 +141,7 @@ namespace stlplus
   template<typename K, typename T, class H, class E, typename V>
   bool hash_iterator<K,T,H,E,V>::operator == (const hash_iterator<K,T,H,E,V>& r) const
   {
-    return equal(r);
+    return this->equal(r);
   }
 
   template<typename K, typename T, class H, class E, typename V>
@@ -153,7 +153,7 @@ namespace stlplus
   template<typename K, typename T, class H, class E, typename V>
   bool hash_iterator<K,T,H,E,V>::operator < (const hash_iterator<K,T,H,E,V>& r) const
   {
-    return compare(r) < 0;
+    return this->compare(r) < 0;
   }
 
   // iterator dereferencing is only legal on a non-null iterator
@@ -259,9 +259,12 @@ namespace stlplus
     // now every key in this must be in right and have the same data
     for (hash_iterator<K,T,H,E,const std::pair<const K,T> > i = begin(); i != end(); i++)
     {
-      hash_iterator<K,T,H,E,const std::pair<const K,T> > found = right.find(i->first);
-      if (found == right.end()) return false;
-      if (!(i->second == found->second)) return false;
+      hash_element<K,T,H,E>* found = right._find_element(i->first);
+      if (found == 0) return false;
+      if (!(i->second == found->m_value.second)) return false;
+//      hash_iterator<K,T,H,E,const std::pair<const K,T> > found = right.find(i->first);
+//      if (found == right.end()) return false;
+//      if (!(i->second == found->second)) return false;
     }
     return true;
   }
@@ -366,11 +369,11 @@ namespace stlplus
   template<typename K, typename T, class H, class E>
   bool hash<K,T,H,E>::present(const K& key) const
   {
-    return find(key) != end();
+    return _find_element(key) != 0;
   }
 
   template<typename K, typename T, class H, class E>
-  TYPENAME hash<K,T,H,E>::size_type hash<K,T,H,E>::count(const K& key) const
+  typename hash<K,T,H,E>::size_type hash<K,T,H,E>::count(const K& key) const
   {
     return present() ? 1 : 0;
   }
@@ -378,7 +381,7 @@ namespace stlplus
   // add a key and data element to the table - defined in terms of the general-purpose pair insert function
 
   template<typename K, typename T, class H, class E>
-  TYPENAME hash<K,T,H,E>::iterator hash<K,T,H,E>::insert(const K& key, const T& data)
+  typename hash<K,T,H,E>::iterator hash<K,T,H,E>::insert(const K& key, const T& data)
   {
     return insert(std::pair<const K,T>(key,data)).first;
   }
@@ -387,7 +390,7 @@ namespace stlplus
   // this removes any old value with the same key since there is no multihash functionality
 
   template<typename K, typename T, class H, class E>
-  std::pair<TYPENAME hash<K,T,H,E>::iterator, bool> hash<K,T,H,E>::insert(const std::pair<const K,T>& value)
+  std::pair<typename hash<K,T,H,E>::iterator, bool> hash<K,T,H,E>::insert(const std::pair<const K,T>& value)
   {
     // if auto-rehash is enabled, implement the auto-rehash before inserting the new value
     // the table is rehashed if this insertion makes the loading exceed 1.0
@@ -434,7 +437,7 @@ namespace stlplus
   // insert a key with an empty data field ready to be filled in later
 
   template<typename K, typename T, class H, class E>
-  TYPENAME hash<K,T,H,E>::iterator hash<K,T,H,E>::insert(const K& key)
+  typename hash<K,T,H,E>::iterator hash<K,T,H,E>::insert(const K& key)
   {
     return insert(key,T());
   }
@@ -473,10 +476,10 @@ namespace stlplus
 
   // remove an element from the hash table using an iterator (std::map equivalent)
   template<typename K, typename T, class H, class E>
-  TYPENAME hash<K,T,H,E>::iterator hash<K,T,H,E>::erase(TYPENAME hash<K,T,H,E>::iterator it)
+  typename hash<K,T,H,E>::iterator hash<K,T,H,E>::erase(typename hash<K,T,H,E>::iterator it)
   {
     // work out what the next iterator is in order to return it later
-    TYPENAME hash<K,T,H,E>::iterator next(it);
+    typename hash<K,T,H,E>::iterator next(it);
     ++next;
     // we now need to find where this item is - made difficult by the use of
     // single-linked lists which means I have to search through the bin from
@@ -513,33 +516,21 @@ namespace stlplus
 
   // search for a key in the table and return an iterator to it
   // if the search fails, returns an end() iterator
+  // Note that ALL hash functions that use iterators are **NOT** thread safe!!!
+  // This is due to the usage of a reference counted master iterator.
 
   template<typename K, typename T, class H, class E>
-  TYPENAME hash<K,T,H,E>::const_iterator hash<K,T,H,E>::find(const K& key) const
+  typename hash<K,T,H,E>::const_iterator hash<K,T,H,E>::find(const K& key) const
   {
-    // scan the list for this key's hash value for the element with a matching key
-    unsigned hash_value_full = H()(key);
-    unsigned bin = hash_value_full % m_bins;
-    for (hash_element<K,T,H,E>* current = m_values[bin]; current; current = current->m_next)
-    {
-      if (current->m_hash == hash_value_full && E()(current->m_value.first, key))
-        return hash_iterator<K,T,H,E,const std::pair<const K,T> >(current);
-    }
-    return end();
+    hash_element<K,T,H,E>* found = _find_element(key);
+    return found ? hash_iterator<K,T,H,E,const std::pair<const K,T> >(found) : end();
   }
 
   template<typename K, typename T, class H, class E>
-  TYPENAME hash<K,T,H,E>::iterator hash<K,T,H,E>::find(const K& key)
+  typename hash<K,T,H,E>::iterator hash<K,T,H,E>::find(const K& key)
   {
-    // scan the list for this key's hash value for the element with a matching key
-    unsigned hash_value_full = H()(key);
-    unsigned bin = hash_value_full % m_bins;
-    for (hash_element<K,T,H,E>* current = m_values[bin]; current; current = current->m_next)
-    {
-      if (current->m_hash == hash_value_full && E()(current->m_value.first, key))
-        return hash_iterator<K,T,H,E,std::pair<const K,T> >(current);
-    }
-    return end();
+    hash_element<K,T,H,E>* found = _find_element(key);
+    return found ? hash_iterator<K,T,H,E,std::pair<const K,T> >(found) : end();
   }
 
   // table lookup by key using the index operator[], returning a reference to the data field, not an iterator
@@ -552,26 +543,44 @@ namespace stlplus
   const T& hash<K,T,H,E>::operator[] (const K& key) const throw(std::out_of_range)
   {
     // this const version cannot change the hash, so has to raise an exception if the key is missing
-    hash_iterator<K,T,H,E,const std::pair<const K,T> > found = find(key);
-    if (found == end())
+    hash_element<K,T,H,E>* found = _find_element(key);
+    if (!found)
       throw std::out_of_range("key not found in stlplus::hash::operator[]");
-    return found->second;
+    return found->m_value.second;
   }
 
   template<typename K, typename T, class H, class E>
   T& hash<K,T,H,E>::operator[] (const K& key)
   {
     // this non-const version can change the hash, so creates a new element if the key is missing
-    hash_iterator<K,T,H,E,std::pair<const K,T> > found = find(key);
-    if (found == end())
-      found = insert(key);
-    return found->second;
+    hash_element<K,T,H,E>* found = _find_element(key);
+    return found ? found->m_value.second : insert(key)->second;
+  }
+
+  // Thread-safe (doesn't use iterators), fast const access to the hash value at a given key.
+  template<typename K, typename T, class H, class E>
+  const T& hash<K,T,H,E>::at(const K& key) const throw(std::out_of_range)
+  {
+    // this const version cannot change the hash, so has to raise an exception if the key is missing
+    hash_element<K,T,H,E>* found = _find_element(key);
+    if (!found)
+      throw std::out_of_range("key not found in stlplus::hash::at");
+    return found->m_value.second;
+  }
+
+  // Thread-safe (doesn't use iterators), fast const pointer access to the hash value at a given key.
+  // This will not throw, instead returning a null pointer if the value is not found.
+  template<typename K, typename T, class H, class E>
+  const T* hash<K,T,H,E>::at_pointer(const K& key) const
+  {
+    hash_element<K,T,H,E>* found = _find_element(key);
+    return found ? &(found->m_value.second) : 0;
   }
 
   // iterators
 
   template<typename K, typename T, class H, class E>
-  TYPENAME hash<K,T,H,E>::const_iterator hash<K,T,H,E>::begin(void) const
+  typename hash<K,T,H,E>::const_iterator hash<K,T,H,E>::begin(void) const
   {
     // find the first element
     for (unsigned bin = 0; bin < m_bins; bin++)
@@ -582,7 +591,7 @@ namespace stlplus
   }
 
   template<typename K, typename T, class H, class E>
-  TYPENAME hash<K,T,H,E>::iterator hash<K,T,H,E>::begin(void)
+  typename hash<K,T,H,E>::iterator hash<K,T,H,E>::begin(void)
   {
     // find the first element
     for (unsigned bin = 0; bin < m_bins; bin++)
@@ -593,13 +602,13 @@ namespace stlplus
   }
 
   template<typename K, typename T, class H, class E>
-  TYPENAME hash<K,T,H,E>::const_iterator hash<K,T,H,E>::end(void) const
+  typename hash<K,T,H,E>::const_iterator hash<K,T,H,E>::end(void) const
   {
     return hash_iterator<K,T,H,E,const std::pair<const K,T> >(this);
   }
 
   template<typename K, typename T, class H, class E>
-  TYPENAME hash<K,T,H,E>::iterator hash<K,T,H,E>::end(void)
+  typename hash<K,T,H,E>::iterator hash<K,T,H,E>::end(void)
   {
     return hash_iterator<K,T,H,E,std::pair<const K,T> >(this);
   }
@@ -650,6 +659,23 @@ namespace stlplus
     }
     str << std::endl;
     str << "------------------------------------------------------------------------" << std::endl;
+  }
+
+  // find a key and return the element pointer
+  // zero is returned if the find fails
+  // this is used internally where iterator usage may not be required (after profiling by DJDM)
+  template<typename K, typename T, class H, class E>
+  hash_element<K,T,H,E>* hash<K,T,H,E>::_find_element(const K& key) const
+  {
+    // scan the list for this key's hash value for the element with a matching key
+    unsigned hash_value_full = H()(key);
+    unsigned bin = hash_value_full % m_bins;
+    for (hash_element<K,T,H,E>* current = m_values[bin]; current; current = current->m_next)
+    {
+      if (current->m_hash == hash_value_full && E()(current->m_value.first, key))
+        return current;
+    }
+    return 0;
   }
 
   ////////////////////////////////////////////////////////////////////////////////

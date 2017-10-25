@@ -163,18 +163,10 @@ namespace stlplus
     // add a variable to the specified file
     bool add_variable(const std::string& section, const std::string& variable, const std::string& value, unsigned depth = 0);
 
-	// set a variable to the specified file
-	bool set_variable(const std::string& section, const std::string& variable, const std::string& value, unsigned depth = 0);
-
-	// add or set a variable to the specified file
-	bool set_variable_ex(const std::string& section, const std::string& variable, const std::string& value, unsigned depth = 0);
-
     // add a variable as a processed string
     // processing means that the values in the string vector are converted into a comma-separated list
     // values containing reserved characters are automatically quoted - so you should not even try to quote them yourself
     bool add_variable(const std::string& section, const std::string& variable, const std::vector<std::string>& values, unsigned depth = 0);
-    bool set_variable(const std::string& section, const std::string& variable, const std::vector<std::string>& values, unsigned depth = 0);
-    bool set_variable_ex(const std::string& section, const std::string& variable, const std::vector<std::string>& values, unsigned depth = 0);
 
     // erase a variable from the specified file
     // this does not remove the variable from other ini files, so the variable may still exist
@@ -191,9 +183,6 @@ namespace stlplus
     bool add_blank(const std::string& section, unsigned depth = 0);
 
     bool print(std::ostream&) const;
-
-private:
-	static std::string join(const std::vector<std::string>& values);
 
   private:
     friend class ini_manager_body;

@@ -1,14 +1,12 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!DOCTYPE html>
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-<meta http-equiv="Content-Style-Type" content="text/css">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 <title>containers/simple_ptr.hpp</title>
-<link rel="stylesheet" type="text/css" href="shCore.css">
-<link rel="stylesheet" type="text/css" href="shThemeSTLplus.css">
+<link rel="stylesheet" type="text/css" href="shCore.css"/>
+<link rel="stylesheet" type="text/css" href="shThemeSTLplus.css"/>
 <script type="text/javascript" src="shCore.js"></script>
 <script type="text/javascript" src="shBrushCpp.js"></script>
-<meta http-equiv="generator" content="cpp2html C++ colouriser by Andy Rushton">
 </head>
 <body>
 <h1>containers/simple_ptr.hpp</h1>
@@ -203,11 +201,12 @@ namespace stlplus
     // in separate counter and pointer objects
     unsigned* _count(void) const;
     T* _pointer(void) const;
-    void _make_alias(T* pointer, unsigned* count);
+    void _make_alias(T* pointer, unsigned* const&amp; count);
 
   private:
-    void increment(void);
-    bool decrement(void);
+    inline void increment(void);
+    inline bool decrement(void);
+    inline void _delete_pointer(void);
   };
 
   ////////////////////////////////////////////////////////////////////////////////
@@ -220,8 +219,8 @@ namespace stlplus
     simple_ptr(void) {}
     explicit simple_ptr(const T&amp; data) : simple_ptr_base&lt;T, constructor_copy&lt;T&gt; &gt;(data) {}
     explicit simple_ptr(T* data) : simple_ptr_base&lt;T, constructor_copy&lt;T&gt; &gt;(data) {}
-    simple_ptr&lt;T&gt;&amp; operator=(const T&amp; data) {set_value(data); return *this;}
-    simple_ptr&lt;T&gt;&amp; operator=(T* data) {set(data); return *this;}
+    simple_ptr&lt;T&gt;&amp; operator=(const T&amp; data) {this-&gt;set_value(data); return *this;}
+    simple_ptr&lt;T&gt;&amp; operator=(T* data) {this-&gt;set(data); return *this;}
     ~simple_ptr(void) {}
 
 #ifdef STLPLUS_MEMBER_TEMPLATES
@@ -255,8 +254,8 @@ namespace stlplus
     simple_ptr_clone(void) {}
     explicit simple_ptr_clone(const T&amp; data) : simple_ptr_base&lt;T, clone_copy&lt;T&gt; &gt;(data) {}
     explicit simple_ptr_clone(T* data) : simple_ptr_base&lt;T, clone_copy&lt;T&gt; &gt;(data) {}
-    simple_ptr_clone&lt;T&gt;&amp; operator=(const T&amp; data) {set_value(data); return *this;}
-    simple_ptr_clone&lt;T&gt;&amp; operator=(T* data) {set(data); return *this;}
+    simple_ptr_clone&lt;T&gt;&amp; operator=(const T&amp; data) {this-&gt;set_value(data); return *this;}
+    simple_ptr_clone&lt;T&gt;&amp; operator=(T* data) {this-&gt;set(data); return *this;}
     ~simple_ptr_clone(void) {}
 
 #ifdef STLPLUS_MEMBER_TEMPLATES
@@ -277,7 +276,7 @@ namespace stlplus
   public:
     simple_ptr_nocopy(void) {}
     explicit simple_ptr_nocopy(T* data) : simple_ptr_base&lt;T, no_copy&lt;T&gt; &gt;(data) {}
-    simple_ptr_nocopy&lt;T&gt;&amp; operator=(T* data) {set(data); return *this;}
+    simple_ptr_nocopy&lt;T&gt;&amp; operator=(T* data) {this-&gt;set(data); return *this;}
     ~simple_ptr_nocopy(void) {}
 
 #ifdef STLPLUS_MEMBER_TEMPLATES
@@ -288,6 +287,23 @@ namespace stlplus
     template&lt;typename T2&gt; simple_ptr_nocopy&lt;T2&gt; cast(void) const;
 #endif
   };
+
+  ////////////////////////////////////////////////////////////////////////////////
+  // internally, simple_ptr allocates lots of count values, which are just
+  // unsigned reference counts. The allocation of these values benefit from
+  // being allocated from a dedicated pool, as this increases the speed
+  // therefore I have now provided the ability to override the memory management
+  // of these values without needing to override the global new/delete
+  // all you need to do is to define these functions BEFORE including this file
+  // and set the override definition
+#ifndef STLPLUS_SIMPLE_PTR_REFCOUNT_ALLOC_OVERRIDE
+  inline unsigned* simple_ptr_refcount_new() {
+	  return new unsigned(1);
+  }
+  inline void simple_ptr_refcount_delete(unsigned* pCount) {
+	  delete pCount;
+  }
+#endif
 
   ////////////////////////////////////////////////////////////////////////////////
 
