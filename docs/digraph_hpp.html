@@ -1,14 +1,12 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!DOCTYPE html>
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-<meta http-equiv="Content-Style-Type" content="text/css">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 <title>containers/digraph.hpp</title>
-<link rel="stylesheet" type="text/css" href="shCore.css">
-<link rel="stylesheet" type="text/css" href="shThemeSTLplus.css">
+<link rel="stylesheet" type="text/css" href="shCore.css"/>
+<link rel="stylesheet" type="text/css" href="shThemeSTLplus.css"/>
 <script type="text/javascript" src="shCore.js"></script>
 <script type="text/javascript" src="shBrushCpp.js"></script>
-<meta http-equiv="generator" content="cpp2html C++ colouriser by Andy Rushton">
 </head>
 <body>
 <h1>containers/digraph.hpp</h1>
@@ -32,6 +30,7 @@
 #include &lt;vector&gt;
 #include &lt;map&gt;
 #include &lt;set&gt;
+#include &lt;iterator&gt;
 
 namespace stlplus
 {
@@ -54,7 +53,7 @@ namespace stlplus
   // and this is the form in which they should be used
 
   template&lt;typename NT, typename AT, typename NRef, typename NPtr&gt;
-  class digraph_iterator : public safe_iterator&lt;digraph&lt;NT,AT&gt;, digraph_node&lt;NT,AT&gt; &gt;
+  class digraph_iterator : public safe_iterator&lt;digraph&lt;NT,AT&gt;, digraph_node&lt;NT,AT&gt; &gt;, public std::iterator&lt;std::bidirectional_iterator_tag, NT, std::ptrdiff_t, NPtr, NRef&gt;
   {
   public:
     friend class digraph&lt;NT,AT&gt;;
@@ -117,7 +116,7 @@ namespace stlplus
   ////////////////////////////////////////////////////////////////////////////////
 
   template&lt;typename NT, typename AT, typename ARef, typename APtr&gt;
-  class digraph_arc_iterator : public safe_iterator&lt;digraph&lt;NT,AT&gt;, digraph_arc&lt;NT,AT&gt; &gt;
+  class digraph_arc_iterator : public safe_iterator&lt;digraph&lt;NT,AT&gt;, digraph_arc&lt;NT,AT&gt; &gt;, public std::iterator&lt;std::bidirectional_iterator_tag, AT, std::ptrdiff_t, APtr, ARef&gt;
   {
   public:
     friend class digraph&lt;NT,AT&gt;;
@@ -193,6 +192,12 @@ namespace stlplus
     typedef digraph_iterator&lt;NT,AT,const NT&amp;,const NT*&gt; const_iterator;
     typedef digraph_arc_iterator&lt;NT,AT,AT&amp;,AT*&gt; arc_iterator;
     typedef digraph_arc_iterator&lt;NT,AT,const AT&amp;,const AT*&gt; const_arc_iterator;
+
+    // iterator ownership - can check whether the graph owns an iterator
+    bool owns(iterator) const;
+    bool owns(const_iterator) const;
+    bool owns(arc_iterator) const;
+    bool owns(const_arc_iterator) const;
 
     // supplementary types used throughout
 
@@ -366,6 +371,14 @@ namespace stlplus
       throw(wrong_object,null_dereference,end_dereference);
 
     ////////////////////////////////////////////////////////////////////////////////
+    // whole graph manipulations
+
+    // move one graph into another by moving all its nodes/arcs
+    // this leaves the source graph empty
+    // all iterators to nodes/arcs in the source graph will still work and will be owned by this
+    void move(digraph&lt;NT,AT&gt;&amp; source);
+
+    ////////////////////////////////////////////////////////////////////////////////
     // Adjacency algorithms
 
     // test whether the nodes are adjacent i.e. whether there is an arc going from from to to
@@ -403,11 +416,11 @@ namespace stlplus
     // Topographical Sort Algorithm
     // This generates a node ordering such that each node is visited after its fanin nodes.
 
-    // This only generates a valid ordering for a DAG. 
+    // This only generates a valid ordering for a Directed Acyclic Graph (DAG). 
 
     // The return value is a pair : 
     //  - the node vector which is a set of iterators to the nodes in sorted order
-    //  - the arc vector is the set of backward ards that were broken to achieve the sort
+    //  - the arc vector is the set of backward arcs that were broken to achieve the sort
     // If the arc vector is empty then the graph formed a DAG.
 
     // The arc selection callback can be used to ignore arcs that are not part

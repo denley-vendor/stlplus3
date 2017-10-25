@@ -15,6 +15,7 @@
 #include "safe_iterator.hpp"
 #include <map>
 #include <iostream>
+#include <iterator>
 
 namespace stlplus
 {
@@ -29,13 +30,13 @@ namespace stlplus
   // iterator class
 
   template<typename K, typename T, class H, class E, typename V>
-  class hash_iterator : public safe_iterator<hash<K,T,H,E>,hash_element<K,T,H,E> >
+  class hash_iterator : public safe_iterator<hash<K,T,H,E>,hash_element<K,T,H,E> >, public std::iterator<std::forward_iterator_tag, V>
   {
   public:
     friend class hash<K,T,H,E>;
 
     // local type definitions
-    // an iterator points to a value whilst a const_iterator points to a const value
+    // an iterator points to a value pair whilst a const_iterator points to a const value pair
     typedef V                                                  value_type;
     typedef hash_iterator<K,T,H,E,std::pair<const K,T> >       iterator;
     typedef hash_iterator<K,T,H,E,const std::pair<const K,T> > const_iterator;
@@ -165,6 +166,8 @@ namespace stlplus
     // find a key and return an iterator to it
     // The iterator is like a pointer to a pair<const K,T>
     // end() is returned if the find fails
+    // Note that ALL hash functions that use iterators are **NOT** thread safe!!!
+    // This is due to the usage of a reference counted master iterator.
     const_iterator find(const K& key) const;
     iterator find(const K& key);
 
@@ -173,6 +176,14 @@ namespace stlplus
     // non-const version is for non-const hashes and is like map - it creates a new key/data pair if find fails
     const T& operator[] (const K& key) const throw(std::out_of_range);
     T& operator[] (const K& key);
+
+    // synonym for const version of operator[]
+    // avoids problem where overloading of operator[] means non-const version can be called, causing a write operation
+    const T& at(const K& key) const throw(std::out_of_range);
+
+    // as above, but accesses a pointer to the value
+    // returns a null pointer if not found, eliminating an exception handler
+    const T* at_pointer(const K& key) const;
 
     // iterators allow the hash table to be traversed
     // iterators remain valid unless an item is removed or unless a rehash happens
@@ -187,6 +198,11 @@ namespace stlplus
 
     // internals
   private:
+    // find a key and return the element pointer
+    // zero is returned if the find fails
+    // this is used internally where iterator usage may not be required (after profiling by DJDM)
+    hash_element<K,T,H,E>* _find_element(const K& key) const;
+
     friend class hash_element<K,T,H,E>;
     friend class hash_iterator<K,T,H,E,std::pair<const K,T> >;
     friend class hash_iterator<K,T,H,E,const std::pair<const K,T> >;

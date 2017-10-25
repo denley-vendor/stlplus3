@@ -1,14 +1,12 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!DOCTYPE html>
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-<meta http-equiv="Content-Style-Type" content="text/css">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 <title>containers/hash.hpp</title>
-<link rel="stylesheet" type="text/css" href="shCore.css">
-<link rel="stylesheet" type="text/css" href="shThemeSTLplus.css">
+<link rel="stylesheet" type="text/css" href="shCore.css"/>
+<link rel="stylesheet" type="text/css" href="shThemeSTLplus.css"/>
 <script type="text/javascript" src="shCore.js"></script>
 <script type="text/javascript" src="shBrushCpp.js"></script>
-<meta http-equiv="generator" content="cpp2html C++ colouriser by Andy Rushton">
 </head>
 <body>
 <h1>containers/hash.hpp</h1>
@@ -30,6 +28,7 @@
 #include &quot;safe_iterator.hpp&quot;
 #include &lt;map&gt;
 #include &lt;iostream&gt;
+#include &lt;iterator&gt;
 
 namespace stlplus
 {
@@ -44,13 +43,13 @@ namespace stlplus
   // iterator class
 
   template&lt;typename K, typename T, class H, class E, typename V&gt;
-  class hash_iterator : public safe_iterator&lt;hash&lt;K,T,H,E&gt;,hash_element&lt;K,T,H,E&gt; &gt;
+  class hash_iterator : public safe_iterator&lt;hash&lt;K,T,H,E&gt;,hash_element&lt;K,T,H,E&gt; &gt;, public std::iterator&lt;std::forward_iterator_tag, V&gt;
   {
   public:
     friend class hash&lt;K,T,H,E&gt;;
 
     // local type definitions
-    // an iterator points to a value whilst a const_iterator points to a const value
+    // an iterator points to a value pair whilst a const_iterator points to a const value pair
     typedef V                                                  value_type;
     typedef hash_iterator&lt;K,T,H,E,std::pair&lt;const K,T&gt; &gt;       iterator;
     typedef hash_iterator&lt;K,T,H,E,const std::pair&lt;const K,T&gt; &gt; const_iterator;
@@ -180,6 +179,8 @@ namespace stlplus
     // find a key and return an iterator to it
     // The iterator is like a pointer to a pair&lt;const K,T&gt;
     // end() is returned if the find fails
+    // Note that ALL hash functions that use iterators are **NOT** thread safe!!!
+    // This is due to the usage of a reference counted master iterator.
     const_iterator find(const K&amp; key) const;
     iterator find(const K&amp; key);
 
@@ -188,6 +189,14 @@ namespace stlplus
     // non-const version is for non-const hashes and is like map - it creates a new key/data pair if find fails
     const T&amp; operator[] (const K&amp; key) const throw(std::out_of_range);
     T&amp; operator[] (const K&amp; key);
+
+    // synonym for const version of operator[]
+    // avoids problem where overloading of operator[] means non-const version can be called, causing a write operation
+    const T&amp; at(const K&amp; key) const throw(std::out_of_range);
+
+    // as above, but accesses a pointer to the value
+    // returns a null pointer if not found, eliminating an exception handler
+    const T* at_pointer(const K&amp; key) const;
 
     // iterators allow the hash table to be traversed
     // iterators remain valid unless an item is removed or unless a rehash happens
@@ -202,6 +211,11 @@ namespace stlplus
 
     // internals
   private:
+    // find a key and return the element pointer
+    // zero is returned if the find fails
+    // this is used internally where iterator usage may not be required (after profiling by DJDM)
+    hash_element&lt;K,T,H,E&gt;* _find_element(const K&amp; key) const;
+
     friend class hash_element&lt;K,T,H,E&gt;;
     friend class hash_iterator&lt;K,T,H,E,std::pair&lt;const K,T&gt; &gt;;
     friend class hash_iterator&lt;K,T,H,E,const std::pair&lt;const K,T&gt; &gt;;

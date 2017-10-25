@@ -1,14 +1,12 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!DOCTYPE html>
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-<meta http-equiv="Content-Style-Type" content="text/css">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 <title>containers/smart_ptr.hpp</title>
-<link rel="stylesheet" type="text/css" href="shCore.css">
-<link rel="stylesheet" type="text/css" href="shThemeSTLplus.css">
+<link rel="stylesheet" type="text/css" href="shCore.css"/>
+<link rel="stylesheet" type="text/css" href="shThemeSTLplus.css"/>
 <script type="text/javascript" src="shCore.js"></script>
 <script type="text/javascript" src="shBrushCpp.js"></script>
-<meta http-equiv="generator" content="cpp2html C++ colouriser by Andy Rushton">
 </head>
 <body>
 <h1>containers/smart_ptr.hpp</h1>
@@ -195,8 +193,8 @@ namespace stlplus
     smart_ptr(void) {}
     explicit smart_ptr(const T&amp; data) : smart_ptr_base&lt;T, constructor_copy&lt;T&gt; &gt;(data) {}
     explicit smart_ptr(T* data) : smart_ptr_base&lt;T, constructor_copy&lt;T&gt; &gt;(data) {}
-    smart_ptr&lt;T&gt;&amp; operator=(const T&amp; data) {set_value(data); return *this;}
-    smart_ptr&lt;T&gt;&amp; operator=(T* data) {set(data); return *this;}
+    smart_ptr&lt;T&gt;&amp; operator=(const T&amp; data) {this-&gt;set_value(data); return *this;}
+    smart_ptr&lt;T&gt;&amp; operator=(T* data) {this-&gt;set(data); return *this;}
     ~smart_ptr(void) {}
   };
 
@@ -210,8 +208,8 @@ namespace stlplus
     smart_ptr_clone(void) {}
     explicit smart_ptr_clone(const T&amp; data) : smart_ptr_base&lt;T, clone_copy&lt;T&gt; &gt;(data) {}
     explicit smart_ptr_clone(T* data) : smart_ptr_base&lt;T, clone_copy&lt;T&gt; &gt;(data) {}
-    smart_ptr_clone&lt;T&gt;&amp; operator=(const T&amp; data) {set_value(data); return *this;}
-    smart_ptr_clone&lt;T&gt;&amp; operator=(T* data) {set(data); return *this;}
+    smart_ptr_clone&lt;T&gt;&amp; operator=(const T&amp; data) {this-&gt;set_value(data); return *this;}
+    smart_ptr_clone&lt;T&gt;&amp; operator=(T* data) {this-&gt;set(data); return *this;}
     ~smart_ptr_clone(void) {}
   };
 
@@ -224,7 +222,7 @@ namespace stlplus
   public:
     smart_ptr_nocopy(void) {}
     explicit smart_ptr_nocopy(T* data) : smart_ptr_base&lt;T, no_copy&lt;T&gt; &gt;(data) {}
-    smart_ptr_nocopy&lt;T&gt;&amp; operator=(T* data) {set(data); return *this;}
+    smart_ptr_nocopy&lt;T&gt;&amp; operator=(T* data) {this-&gt;set(data); return *this;}
     ~smart_ptr_nocopy(void) {}
   };
 

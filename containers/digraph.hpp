@@ -17,6 +17,7 @@
 #include <vector>
 #include <map>
 #include <set>
+#include <iterator>
 
 namespace stlplus
 {
@@ -39,7 +40,7 @@ namespace stlplus
   // and this is the form in which they should be used
 
   template<typename NT, typename AT, typename NRef, typename NPtr>
-  class digraph_iterator : public safe_iterator<digraph<NT,AT>, digraph_node<NT,AT> >
+  class digraph_iterator : public safe_iterator<digraph<NT,AT>, digraph_node<NT,AT> >, public std::iterator<std::bidirectional_iterator_tag, NT, std::ptrdiff_t, NPtr, NRef>
   {
   public:
     friend class digraph<NT,AT>;
@@ -102,7 +103,7 @@ namespace stlplus
   ////////////////////////////////////////////////////////////////////////////////
 
   template<typename NT, typename AT, typename ARef, typename APtr>
-  class digraph_arc_iterator : public safe_iterator<digraph<NT,AT>, digraph_arc<NT,AT> >
+  class digraph_arc_iterator : public safe_iterator<digraph<NT,AT>, digraph_arc<NT,AT> >, public std::iterator<std::bidirectional_iterator_tag, AT, std::ptrdiff_t, APtr, ARef>
   {
   public:
     friend class digraph<NT,AT>;
@@ -178,6 +179,12 @@ namespace stlplus
     typedef digraph_iterator<NT,AT,const NT&,const NT*> const_iterator;
     typedef digraph_arc_iterator<NT,AT,AT&,AT*> arc_iterator;
     typedef digraph_arc_iterator<NT,AT,const AT&,const AT*> const_arc_iterator;
+
+    // iterator ownership - can check whether the graph owns an iterator
+    bool owns(iterator) const;
+    bool owns(const_iterator) const;
+    bool owns(arc_iterator) const;
+    bool owns(const_arc_iterator) const;
 
     // supplementary types used throughout
 
@@ -351,6 +358,14 @@ namespace stlplus
       throw(wrong_object,null_dereference,end_dereference);
 
     ////////////////////////////////////////////////////////////////////////////////
+    // whole graph manipulations
+
+    // move one graph into another by moving all its nodes/arcs
+    // this leaves the source graph empty
+    // all iterators to nodes/arcs in the source graph will still work and will be owned by this
+    void move(digraph<NT,AT>& source);
+
+    ////////////////////////////////////////////////////////////////////////////////
     // Adjacency algorithms
 
     // test whether the nodes are adjacent i.e. whether there is an arc going from from to to
@@ -388,11 +403,11 @@ namespace stlplus
     // Topographical Sort Algorithm
     // This generates a node ordering such that each node is visited after its fanin nodes.
 
-    // This only generates a valid ordering for a DAG. 
+    // This only generates a valid ordering for a Directed Acyclic Graph (DAG). 
 
     // The return value is a pair : 
     //  - the node vector which is a set of iterators to the nodes in sorted order
-    //  - the arc vector is the set of backward ards that were broken to achieve the sort
+    //  - the arc vector is the set of backward arcs that were broken to achieve the sort
     // If the arc vector is empty then the graph formed a DAG.
 
     // The arc selection callback can be used to ignore arcs that are not part
@@ -479,7 +494,7 @@ namespace stlplus
     friend class digraph_arc_iterator<NT,AT,const AT&, const AT*>;
 
     typedef std::set<const_iterator> const_iterator_set;
-    typedef TYPENAME const_iterator_set::iterator const_iterator_set_iterator;
+    typedef typename const_iterator_set::iterator const_iterator_set_iterator;
 
     bool path_exists_r(const_iterator from, const_iterator to, const_iterator_set& visited, arc_select_fn) const
       throw(wrong_object,null_dereference,end_dereference);

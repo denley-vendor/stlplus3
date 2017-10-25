@@ -1,14 +1,12 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!DOCTYPE html>
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-<meta http-equiv="Content-Style-Type" content="text/css">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 <title>portability/file_system.hpp</title>
-<link rel="stylesheet" type="text/css" href="shCore.css">
-<link rel="stylesheet" type="text/css" href="shThemeSTLplus.css">
+<link rel="stylesheet" type="text/css" href="shCore.css"/>
+<link rel="stylesheet" type="text/css" href="shThemeSTLplus.css"/>
 <script type="text/javascript" src="shCore.js"></script>
 <script type="text/javascript" src="shBrushCpp.js"></script>
-<meta http-equiv="generator" content="cpp2html C++ colouriser by Andy Rushton">
 </head>
 <body>
 <h1>portability/file_system.hpp</h1>
@@ -169,7 +167,9 @@ namespace stlplus
 
   // append a folder separator to the path to make it absolutely clear that it is a folder
   std::string folder_append_separator(const std::string&amp; folder);
-
+  // undo the above to give a simplified folder with no trailing separator
+  std::string folder_remove_end_separator(const std::string&amp; folder);
+  
   ////////////////////////////////////////////////////////////////////////////////
   // access functions split a filespec into its elements
 

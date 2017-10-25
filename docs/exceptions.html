@@ -1,15 +1,12 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!DOCTYPE HTML>
 <html lang="en">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-<meta http-equiv="Content-Style-Type" content="text/css">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 <title>STLplus Library Collection - containers/exceptions.hpp - Exceptions Thrown by STLplus Containers</title>
-<link rel="icon" href="plus.png" type="image/png">
-<meta name="Author" content="Andy Rushton">
-<meta name="Copyright" content="(c) Southampton University 1999-2004 Andy Rushton 2004 onwards">
-<meta name="License" content="BSD license, see license.html">
-<link rel="stylesheet" media="screen" type="text/css" href="screen.css">
-<link rel="stylesheet" media="print" type="text/css" href="print.css">
+<link rel="icon" href="plus.png" type="image/png"/>
+<meta name="Author" content="Andy Rushton"/>
+<link rel="stylesheet" media="screen" type="text/css" href="screen.css"/>
+<link rel="stylesheet" media="print" type="text/css" href="print.css"/>
 </head>
 
 <body>
@@ -18,7 +15,7 @@
 
 <div id="headerBanner">
 <h1>The
-<span style="color:red">S</span><span style="color:blue">T</span><span style="color:green">L</span><span style="color:#ecec80">+</span>
+<span style="color:red">S</span><span style="color:blue">T</span><span style="color:green">L</span><span style="color:#ecec80">plus</span>
 C++ Library Collection</h1>
 </div>
 
@@ -106,10 +103,7 @@ causes the exception to be thrown. In theory at least, release versions of
 software should not throw any exceptions (with the above-mentioned
 message_handler_limit_error being a notable special-case).</p>
 
-<p>The conversion of the STLplus library to use exceptions is an ongoing project.</p>
-
-<p>The long-term plan is to gradually convert all STLplus components to use
-exceptions for error handling. The philosophy here is to use C++ standard
+<p>The philosophy here is to use C++ standard
 exceptions where they are appropriate (for example std::out_of_range for an
 index that's out of range of an array). If there isn't a standard exception
 that's appropriate, then the exception will be classed as general to the
@@ -186,7 +180,7 @@ generally only be caught as the program executes.</dd>
 <p>Exceptions used in STLplus that are common to more than one component are
 collected in header <a href="exceptions_hpp.html">exceptions.hpp</a>.</p>
 
-<p>The following three exceptions are defined for indicating errors in the use
+<p>The following exceptions are defined for indicating errors in the use
 of STLplus iterators in the container classes (well, those that have
 iterators) and for indicating errors in smart pointers:</p>
 
@@ -214,21 +208,6 @@ has been made to create a copy of an object that cannot be copied - typically wh
 stored in a <a href="smart_ptr.html">smart_ptr_nocopy</a> object.</dd>
 
 </dl>
-
-
-<h2 id="status">Status</h2>
-
-<p>The STLplus library is currently only partly converted to use exceptions.
-Some of the older components do not use them. Instead, some components use
-assertions to indicate a misuse of the component.</p>
-
-<p>As an interim measure, the assertion used throughout the STLplus library is
-the DEBUG_ASSERT macro defined in <a href="debug.html">debug.hpp</a>. This
-macro calls a function that throws an exception to indicate the assertion
-failure. This exception - assert_failed - is a subclass of
-std::logic_error. Therefore, assertion failures are handled by any catch block
-that handles these standard exceptions.</p>
-
 
 </div>
 

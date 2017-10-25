@@ -19,7 +19,7 @@ namespace stlplus
   template <typename T, typename C>
   simple_ptr_base<T,C>::simple_ptr_base(void) :
     m_pointer(0),
-    m_count(new unsigned(1))
+    m_count(0)
   {
   }
 
@@ -27,7 +27,7 @@ namespace stlplus
   template <typename T, typename C>
   simple_ptr_base<T,C>::simple_ptr_base(const T& data) throw(illegal_copy) :
     m_pointer(C()(data)),
-    m_count(new unsigned(1))
+    m_count(0)
   {
   }
 
@@ -37,7 +37,7 @@ namespace stlplus
   template <typename T, typename C>
   simple_ptr_base<T,C>::simple_ptr_base(T* data) :
     m_pointer(data),
-    m_count(new unsigned(1))
+    m_count(0)
   {
   }
 
@@ -47,6 +47,10 @@ namespace stlplus
     m_pointer(r.m_pointer),
     m_count(r.m_count)
   {
+    // deferred count allocation
+    if (!m_count) {
+      m_count = ((simple_ptr_base<T,C>&)r).m_count = simple_ptr_refcount_new();
+    }
     increment();
   }
 
@@ -64,8 +68,10 @@ namespace stlplus
   {
     if(decrement()) 
     {
-      delete m_pointer;
-      delete m_count;
+      _delete_pointer();
+      if (m_count) {
+        simple_ptr_refcount_delete(m_count);
+      }
     }
   }
 
@@ -153,13 +159,28 @@ namespace stlplus
   template <typename T, typename C>
   void simple_ptr_base<T,C>::set(T* data)
   {
-    unsigned& count = *m_count;
-    if (count<=1)
-      delete m_pointer;
-    else
-    {
-      --count;
-      m_count = new unsigned(1);
+    if (!m_count) {
+      // The count member doesn't exist, meaning that there are no other references
+      // The current pointer may exist though, so should be deleted
+      _delete_pointer();
+    } else {
+      unsigned& count = *m_count;
+      if (count==1) {
+        // The count member can be reused, but the current pointer should be deleted
+        _delete_pointer();
+      } else if (!count) {
+        // The count member is indicating that it will be destructed, so assign a new one
+        // for the given object. This might only happen when a pointer is being destructed
+        // and the contained object makes a copy of the pointer and then sets it to something.
+        // Very tenuous I know, but still it's possible. Whatever, the object should NOT
+        // be deleted, as it is probably in the middle of destruction already.
+        m_count = simple_ptr_refcount_new();
+      } else {
+        // Another pointer holds a reference to the current object, so just decrement
+        // and create a new counter for the given object (actually, we start out with deferred counters now)
+        --count;
+        m_count = 0;
+      }
     }
     m_pointer = data;
   }
@@ -182,15 +203,47 @@ namespace stlplus
   template <typename T, typename C>
   void simple_ptr_base<T,C>::increment(void)
   {
-    ++(*m_count);
+    // we must have a counter allocated before incrementing - this is guaranteed
+//    if (!m_count) return;
+  	// Do NOT increment a count that has already been decremented to zero
+  	// as the object pointed to by this pointer might be in the middle of destruction
+  	// This can happen if a callback within the destructor of an object held by this
+  	// pointer makes a copy of it's container pointer (this).
+  	// The result of incrementing will be that the object gets double-deleted/destructed
+  	// which can lead to all sorts of errors as destructors are generally not recursive
+  	// A similar check for decrementing is made below
+  	// Note that objects are deleted BEFORE the count container is deleted, so the count
+  	// container will always be valid in the context of the object.
+    unsigned& count = *m_count;
+    if (!count) return;
+    ++count;
   }
 
   template <typename T, typename C>
   bool simple_ptr_base<T,C>::decrement(void)
   {
+    // if we have never created a counter, then we don't have any other references
+    // so return that we should delete our pointer
+    if (!m_count) {
+    	return true;
+    }
     unsigned& count = *m_count;
+    // Do NOT destruct if the count is already zero (see increment above)
+    if (!count) {
+    	return false;
+    }
     --count;
     return count == 0;
+  }
+
+  template <typename T, typename C>
+  void simple_ptr_base<T,C>::_delete_pointer(void)
+  {
+    if (m_pointer) {
+      T* pointer = m_pointer;
+      m_pointer = 0;
+      delete pointer;
+    }
   }
 
   // make this an alias of the passed object
@@ -201,24 +254,31 @@ namespace stlplus
     // assignment if r is either the same object or an alias of it
     if (m_pointer==r.m_pointer) return;
     if(decrement()) {
-      delete m_pointer;
-      delete m_count;
+      _delete_pointer();
+      if (m_count) {
+        simple_ptr_refcount_delete(m_count);
+      }
     }
     m_pointer = r.m_pointer;
-    m_count = r.m_count;
+    // deferred count allocation
+    if (r.m_count) {
+      m_count = r.m_count;
+    } else {
+      m_count = ((simple_ptr_base<T,C>&)r).m_count = simple_ptr_refcount_new();
+    }
     increment();
   }
 
   template <typename T, typename C>
   bool simple_ptr_base<T,C>::aliases(const simple_ptr_base<T,C>& r) const
   {
-    return m_count == r.m_count;
+    return m_count && (m_count == r.m_count);
   }
 
   template <typename T, typename C>
   unsigned simple_ptr_base<T,C>::alias_count(void) const
   {
-    return *m_count;
+    return m_count ? *m_count : 1;
   }
 
   template <typename T, typename C>
@@ -236,11 +296,16 @@ namespace stlplus
   template <typename T, typename C>
   void simple_ptr_base<T,C>::make_unique(void) throw(illegal_copy)
   {
+    if (!m_count) {
+      return;
+    }
     unsigned& count = *m_count;
-    if (count <= 1) return;
+    if (count <= 1) {
+      return;
+    }
     --count;
     if (m_pointer) m_pointer = C()(*m_pointer);
-    m_count = new unsigned(1);
+    m_count = 0;
   }
 
   template <typename T, typename C>
@@ -256,6 +321,9 @@ namespace stlplus
   template <typename T, typename C>
   unsigned* simple_ptr_base<T,C>::_count(void) const
   {
+    if (!m_count) {
+      ((simple_ptr_base<T,C>*)this)->m_count = simple_ptr_refcount_new();
+    }
     return m_count;
   }
 
@@ -266,19 +334,27 @@ namespace stlplus
   }
 
   template <typename T, typename C>
-  void simple_ptr_base<T,C>::_make_alias(T* pointer, unsigned* count)
+  void simple_ptr_base<T,C>::_make_alias(T* pointer, unsigned* const& count)
   {
     // make it alias-copy safe - this means that I don't try to do the
     // assignment if r is either the same object or an alias of it
-    if (m_count != count)
+    if (!m_count || m_count != count)
     {
       if(decrement())
       {
-        delete m_pointer;
-        delete m_count;
+        _delete_pointer();
+        if (m_count) {
+          simple_ptr_refcount_delete(m_count);
+        }
       }
       m_pointer = pointer;
-      m_count = count;
+      // deferred count allocation
+      if (count) {
+        m_count = count;
+      } else {
+        unsigned*& c = (unsigned*&)count;
+        m_count = c = simple_ptr_refcount_new();
+      }
       increment();
     }
   }

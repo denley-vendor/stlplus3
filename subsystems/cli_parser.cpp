@@ -110,7 +110,7 @@ namespace stlplus
     unsigned add_definition(const cli_parser::definition& definition)
       {
         m_definitions.push_back(definition);
-        return m_definitions.size()-1;
+        return static_cast<unsigned>(m_definitions.size())-1;
       }
 
     std::string name(unsigned i) const throw(cli_index_error)
@@ -158,7 +158,7 @@ namespace stlplus
               (!name.empty() && candidate.size() >= name.size() && candidate.substr(0,name.size()) == name))
             return i;
         }
-        return m_definitions.size();
+        return static_cast<unsigned>(m_definitions.size());
       }
 
     void clear_definitions(void)
@@ -226,7 +226,7 @@ namespace stlplus
           break;
         }
         m_values.push_back(cli_value(definition,value,m_level,source));
-        return m_values.size()-1;
+        return static_cast<unsigned>(m_values.size())-1;
       }
 
     unsigned add_switch(unsigned definition, bool value, const std::string& source)
@@ -247,7 +247,7 @@ namespace stlplus
 
     unsigned ini_file_size(void) const
       {
-        return m_ini_files.size();
+        return static_cast<unsigned>(m_ini_files.size());
       }
 
     const std::string& ini_file(unsigned i) const
@@ -340,6 +340,11 @@ namespace stlplus
           if (!name.empty() && name[0] == '-')
           {
             // we have a command line option
+            // Patch from Evgeny Pokhilko: Treat -- as - to support double dash command switches
+            // this is a simple work around that erases first -. Now it is -parameter as the parser needs
+            // TODO - implement idea of short and long parameters
+            if(name.length() > 1 && name[1] == '-')
+                name.erase(0, 1);
             unsigned found = find_definition(name.substr(1, name.size()-1));
             if (found < m_definitions.size())
             {
@@ -567,7 +572,7 @@ namespace stlplus
 
   unsigned cli_parser::size(void) const throw()
   {
-    return m_data->m_values.size();
+    return static_cast<unsigned>(m_data->m_values.size());
   }
 
   std::string cli_parser::name(unsigned i) const throw(cli_index_error)

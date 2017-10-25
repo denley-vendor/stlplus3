@@ -1,14 +1,12 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!DOCTYPE html>
 <html>
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-<meta http-equiv="Content-Style-Type" content="text/css">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 <title>strings/print_int.hpp</title>
-<link rel="stylesheet" type="text/css" href="shCore.css">
-<link rel="stylesheet" type="text/css" href="shThemeSTLplus.css">
+<link rel="stylesheet" type="text/css" href="shCore.css"/>
+<link rel="stylesheet" type="text/css" href="shThemeSTLplus.css"/>
 <script type="text/javascript" src="shCore.js"></script>
 <script type="text/javascript" src="shBrushCpp.js"></script>
-<meta http-equiv="generator" content="cpp2html C++ colouriser by Andy Rushton">
 </head>
 <body>
 <h1>strings/print_int.hpp</h1>
@@ -87,6 +85,26 @@ namespace stlplus
                            unsigned radix = 10,
                            radix_display_t display = radix_c_style_or_hash,
                            unsigned width = 0)
+    throw(std::invalid_argument);
+
+  void print_longlong(std::ostream&amp; device, long long i,
+                      unsigned radix = 10,
+                      radix_display_t display = radix_c_style_or_hash,
+                      unsigned width = 0)
+    throw(std::invalid_argument);
+
+  void print_unsigned_longlong(std::ostream&amp; device, unsigned long long i,
+                               unsigned radix = 10,
+                               radix_display_t display = radix_c_style_or_hash,
+                               unsigned width = 0)
+    throw(std::invalid_argument);
+
+  ////////////////////////////////////////////////////////////////////////////////
+
+  void print_address(std::ostream&amp; device, const void*,
+                     unsigned radix = 16,
+                     radix_display_t display = radix_c_style_or_hash,
+                     unsigned width = 0)
     throw(std::invalid_argument);
 
   ////////////////////////////////////////////////////////////////////////////////

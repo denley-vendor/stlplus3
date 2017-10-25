@@ -535,7 +535,7 @@ namespace stlplus
     // string, inserting the new value when a name greater than it is found
     unsigned size = envp_size(m_env);
 #ifdef MSWINDOWS
-    unsigned new_size = size + name.size() + value.size() + 2;
+    size_t new_size = size + name.size() + value.size() + 2;
     char* new_v = new char[new_size];
     new_v[0] = '\0';
 #else
@@ -1030,8 +1030,14 @@ namespace stlplus
     if (!TerminateJobObject(m_job, (UINT)-1))
     {
       set_error(GetLastError());
-      return false;
+//      return false;
     }
+	// we also terminate the pid (not relying on TerminateJobObject)
+	if (!TerminateProcess(m_pid.hProcess, (UINT)-1))
+	{
+		set_error(GetLastError());
+		return false;
+	}
     return true;
   }
 
@@ -1771,8 +1777,14 @@ namespace stlplus
     if (!TerminateJobObject(m_job, (UINT)-1))
     {
       set_error(GetLastError());
-      return false;
+//      return false;
     }
+	// we also terminate the pid (not relying on TerminateJobObject)
+	if (!TerminateProcess(m_pid.hProcess, (UINT)-1))
+	{
+		set_error(GetLastError());
+		return false;
+	}
     return true;
   }
 

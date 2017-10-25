@@ -188,11 +188,12 @@ namespace stlplus
     // in separate counter and pointer objects
     unsigned* _count(void) const;
     T* _pointer(void) const;
-    void _make_alias(T* pointer, unsigned* count);
+    void _make_alias(T* pointer, unsigned* const& count);
 
   private:
-    void increment(void);
-    bool decrement(void);
+    inline void increment(void);
+    inline bool decrement(void);
+    inline void _delete_pointer(void);
   };
 
   ////////////////////////////////////////////////////////////////////////////////
@@ -205,8 +206,8 @@ namespace stlplus
     simple_ptr(void) {}
     explicit simple_ptr(const T& data) : simple_ptr_base<T, constructor_copy<T> >(data) {}
     explicit simple_ptr(T* data) : simple_ptr_base<T, constructor_copy<T> >(data) {}
-    simple_ptr<T>& operator=(const T& data) {set_value(data); return *this;}
-    simple_ptr<T>& operator=(T* data) {set(data); return *this;}
+    simple_ptr<T>& operator=(const T& data) {this->set_value(data); return *this;}
+    simple_ptr<T>& operator=(T* data) {this->set(data); return *this;}
     ~simple_ptr(void) {}
 
 #ifdef STLPLUS_MEMBER_TEMPLATES
@@ -240,8 +241,8 @@ namespace stlplus
     simple_ptr_clone(void) {}
     explicit simple_ptr_clone(const T& data) : simple_ptr_base<T, clone_copy<T> >(data) {}
     explicit simple_ptr_clone(T* data) : simple_ptr_base<T, clone_copy<T> >(data) {}
-    simple_ptr_clone<T>& operator=(const T& data) {set_value(data); return *this;}
-    simple_ptr_clone<T>& operator=(T* data) {set(data); return *this;}
+    simple_ptr_clone<T>& operator=(const T& data) {this->set_value(data); return *this;}
+    simple_ptr_clone<T>& operator=(T* data) {this->set(data); return *this;}
     ~simple_ptr_clone(void) {}
 
 #ifdef STLPLUS_MEMBER_TEMPLATES
@@ -262,7 +263,7 @@ namespace stlplus
   public:
     simple_ptr_nocopy(void) {}
     explicit simple_ptr_nocopy(T* data) : simple_ptr_base<T, no_copy<T> >(data) {}
-    simple_ptr_nocopy<T>& operator=(T* data) {set(data); return *this;}
+    simple_ptr_nocopy<T>& operator=(T* data) {this->set(data); return *this;}
     ~simple_ptr_nocopy(void) {}
 
 #ifdef STLPLUS_MEMBER_TEMPLATES
@@ -273,6 +274,23 @@ namespace stlplus
     template<typename T2> simple_ptr_nocopy<T2> cast(void) const;
 #endif
   };
+
+  ////////////////////////////////////////////////////////////////////////////////
+  // internally, simple_ptr allocates lots of count values, which are just
+  // unsigned reference counts. The allocation of these values benefit from
+  // being allocated from a dedicated pool, as this increases the speed
+  // therefore I have now provided the ability to override the memory management
+  // of these values without needing to override the global new/delete
+  // all you need to do is to define these functions BEFORE including this file
+  // and set the override definition
+#ifndef STLPLUS_SIMPLE_PTR_REFCOUNT_ALLOC_OVERRIDE
+  inline unsigned* simple_ptr_refcount_new() {
+	  return new unsigned(1);
+  }
+  inline void simple_ptr_refcount_delete(unsigned* pCount) {
+	  delete pCount;
+  }
+#endif
 
   ////////////////////////////////////////////////////////////////////////////////
 

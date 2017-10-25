@@ -33,14 +33,14 @@ namespace stlplus
     void change_owner(const ntree<T>* owner)
       {
         m_master.change_owner(owner);
-        for (TYPENAME std::vector<ntree_node<T>*>::iterator i = m_children.begin(); i != m_children.end(); i++)
+        for (typename std::vector<ntree_node<T>*>::iterator i = m_children.begin(); i != m_children.end(); i++)
           (*i)->change_owner(owner);
       }
 
     ~ntree_node(void)
       {
         m_parent = 0;
-        for (TYPENAME std::vector<ntree_node<T>*>::iterator i = m_children.begin(); i != m_children.end(); i++)
+        for (typename std::vector<ntree_node<T>*>::iterator i = m_children.begin(); i != m_children.end(); i++)
           delete *i;
       }
 
@@ -51,7 +51,7 @@ namespace stlplus
   {
     if (!root) return 0;
     ntree_node<T>* new_tree = new ntree_node<T>(new_owner, root->m_data);
-    for (TYPENAME std::vector<ntree_node<T>*>::iterator i = root->m_children.begin(); i != root->m_children.end(); i++)
+    for (typename std::vector<ntree_node<T>*>::iterator i = root->m_children.begin(); i != root->m_children.end(); i++)
     {
       ntree_node<T>* new_child = ntree_copy(new_owner, *i);
       new_tree->m_children.push_back(new_child);
@@ -65,7 +65,7 @@ namespace stlplus
   {
     if (!root) return 0;
     unsigned result = 1;
-    for (TYPENAME std::vector<ntree_node<T>*>::iterator i = root->m_children.begin(); i != root->m_children.end(); i++)
+    for (typename std::vector<ntree_node<T>*>::iterator i = root->m_children.begin(); i != root->m_children.end(); i++)
       result += ntree_size(*i);
     return result;
   }
@@ -116,37 +116,37 @@ namespace stlplus
   }
 
   template<typename T, typename TRef, typename TPtr>
-  TYPENAME ntree_iterator<T,TRef,TPtr>::const_iterator ntree_iterator<T,TRef,TPtr>::constify(void) const
+  typename ntree_iterator<T,TRef,TPtr>::const_iterator ntree_iterator<T,TRef,TPtr>::constify(void) const
   {
     return ntree_iterator<T,const T&,const T*>(*this);
   }
 
   template<typename T, typename TRef, typename TPtr>
-  TYPENAME ntree_iterator<T,TRef,TPtr>::iterator ntree_iterator<T,TRef,TPtr>::deconstify(void) const
+  typename ntree_iterator<T,TRef,TPtr>::iterator ntree_iterator<T,TRef,TPtr>::deconstify(void) const
   {
     return ntree_iterator<T,T&,T*>(*this);
   }
 
   template<typename T, typename TRef, typename TPtr>
-  bool ntree_iterator<T,TRef,TPtr>::operator == (const TYPENAME ntree_iterator<T,TRef,TPtr>::this_iterator& r) const
+  bool ntree_iterator<T,TRef,TPtr>::operator == (const typename ntree_iterator<T,TRef,TPtr>::this_iterator& r) const
   {
-    return equal(r);
+    return this->equal(r);
   }
 
   template<typename T, typename TRef, typename TPtr>
-  bool ntree_iterator<T,TRef,TPtr>::operator != (const TYPENAME ntree_iterator<T,TRef,TPtr>::this_iterator& r) const
+  bool ntree_iterator<T,TRef,TPtr>::operator != (const typename ntree_iterator<T,TRef,TPtr>::this_iterator& r) const
   {
     return !operator==(r);
   }
 
   template<typename T, typename TRef, typename TPtr>
-  bool ntree_iterator<T,TRef,TPtr>::operator < (const TYPENAME ntree_iterator<T,TRef,TPtr>::this_iterator& r) const
+  bool ntree_iterator<T,TRef,TPtr>::operator < (const typename ntree_iterator<T,TRef,TPtr>::this_iterator& r) const
   {
-    return compare(r) < 0;
+    return this->compare(r) < 0;
   }
 
   template<typename T, typename TRef, typename TPtr>
-  TYPENAME ntree_iterator<T,TRef,TPtr>::reference ntree_iterator<T,TRef,TPtr>::operator*(void) const
+  typename ntree_iterator<T,TRef,TPtr>::reference ntree_iterator<T,TRef,TPtr>::operator*(void) const
     throw(null_dereference,end_dereference)
   {
     this->assert_valid();
@@ -154,7 +154,7 @@ namespace stlplus
   }
 
   template<typename T, typename TRef, typename TPtr>
-  TYPENAME ntree_iterator<T,TRef,TPtr>::pointer ntree_iterator<T,TRef,TPtr>::operator->(void) const
+  typename ntree_iterator<T,TRef,TPtr>::pointer ntree_iterator<T,TRef,TPtr>::operator->(void) const
     throw(null_dereference,end_dereference)
   {
     return &(operator*());
@@ -200,13 +200,13 @@ namespace stlplus
   }
 
   template<typename T, typename TRef, typename TPtr>
-  TYPENAME ntree_prefix_iterator<T,TRef,TPtr>::const_iterator ntree_prefix_iterator<T,TRef,TPtr>::constify(void) const
+  typename ntree_prefix_iterator<T,TRef,TPtr>::const_iterator ntree_prefix_iterator<T,TRef,TPtr>::constify(void) const
   {
     return ntree_prefix_iterator<T,const T&,const T*>(m_iterator);
   }
 
   template<typename T, typename TRef, typename TPtr>
-  TYPENAME ntree_prefix_iterator<T,TRef,TPtr>::iterator ntree_prefix_iterator<T,TRef,TPtr>::deconstify(void) const
+  typename ntree_prefix_iterator<T,TRef,TPtr>::iterator ntree_prefix_iterator<T,TRef,TPtr>::deconstify(void) const
   {
     return ntree_prefix_iterator<T,T&,T*>(m_iterator);
   }
@@ -218,25 +218,25 @@ namespace stlplus
   }
 
   template<typename T, typename TRef, typename TPtr>
-  bool ntree_prefix_iterator<T,TRef,TPtr>::operator == (const TYPENAME ntree_prefix_iterator<T,TRef,TPtr>::this_iterator& r) const
+  bool ntree_prefix_iterator<T,TRef,TPtr>::operator == (const typename ntree_prefix_iterator<T,TRef,TPtr>::this_iterator& r) const
   {
     return m_iterator == r.m_iterator;
   }
 
   template<typename T, typename TRef, typename TPtr>
-  bool ntree_prefix_iterator<T,TRef,TPtr>::operator != (const TYPENAME ntree_prefix_iterator<T,TRef,TPtr>::this_iterator& r) const
+  bool ntree_prefix_iterator<T,TRef,TPtr>::operator != (const typename ntree_prefix_iterator<T,TRef,TPtr>::this_iterator& r) const
   {
     return m_iterator != r.m_iterator;
   }
 
   template<typename T, typename TRef, typename TPtr>
-  bool ntree_prefix_iterator<T,TRef,TPtr>::operator < (const TYPENAME ntree_prefix_iterator<T,TRef,TPtr>::this_iterator& r) const
+  bool ntree_prefix_iterator<T,TRef,TPtr>::operator < (const typename ntree_prefix_iterator<T,TRef,TPtr>::this_iterator& r) const
   {
     return m_iterator < r.m_iterator;
   }
 
   template<typename T, typename TRef, typename TPtr>
-  TYPENAME ntree_prefix_iterator<T,TRef,TPtr>::this_iterator& ntree_prefix_iterator<T,TRef,TPtr>::operator ++ (void)
+  typename ntree_prefix_iterator<T,TRef,TPtr>::this_iterator& ntree_prefix_iterator<T,TRef,TPtr>::operator ++ (void)
     throw(null_dereference,end_dereference)
   {
     // pre-increment operator
@@ -270,7 +270,7 @@ namespace stlplus
         {
           // otherwise walk down the next child - if there is one
           // find which index the old node was relative to this node
-          TYPENAME std::vector<ntree_node<T>*>::iterator found = 
+          typename std::vector<ntree_node<T>*>::iterator found = 
             std::find(parent->m_children.begin(), parent->m_children.end(), old_node);
           // if this was found, then see if there is another and if so return that
           found++;
@@ -292,7 +292,7 @@ namespace stlplus
   }
 
   template<typename T, typename TRef, typename TPtr>
-  TYPENAME ntree_prefix_iterator<T,TRef,TPtr>::this_iterator ntree_prefix_iterator<T,TRef,TPtr>::operator ++ (int)
+  typename ntree_prefix_iterator<T,TRef,TPtr>::this_iterator ntree_prefix_iterator<T,TRef,TPtr>::operator ++ (int)
     throw(null_dereference,end_dereference)
   {
     // post-increment is defined in terms of the pre-increment
@@ -302,14 +302,14 @@ namespace stlplus
   }
 
   template<typename T, typename TRef, typename TPtr>
-  TYPENAME ntree_prefix_iterator<T,TRef,TPtr>::reference ntree_prefix_iterator<T,TRef,TPtr>::operator*(void) const
+  typename ntree_prefix_iterator<T,TRef,TPtr>::reference ntree_prefix_iterator<T,TRef,TPtr>::operator*(void) const
     throw(null_dereference,end_dereference)
   {
     return m_iterator.operator*();
   }
 
   template<typename T, typename TRef, typename TPtr>
-  TYPENAME ntree_prefix_iterator<T,TRef,TPtr>::pointer ntree_prefix_iterator<T,TRef,TPtr>::operator->(void) const
+  typename ntree_prefix_iterator<T,TRef,TPtr>::pointer ntree_prefix_iterator<T,TRef,TPtr>::operator->(void) const
     throw(null_dereference,end_dereference)
   {
     return m_iterator.operator->();
@@ -374,13 +374,13 @@ namespace stlplus
   }
 
   template<typename T, typename TRef, typename TPtr>
-  TYPENAME ntree_postfix_iterator<T,TRef,TPtr>::const_iterator ntree_postfix_iterator<T,TRef,TPtr>::constify(void) const
+  typename ntree_postfix_iterator<T,TRef,TPtr>::const_iterator ntree_postfix_iterator<T,TRef,TPtr>::constify(void) const
   {
     return ntree_postfix_iterator<T,const T&,const T*>(m_iterator);
   }
 
   template<typename T, typename TRef, typename TPtr>
-  TYPENAME ntree_postfix_iterator<T,TRef,TPtr>::iterator ntree_postfix_iterator<T,TRef,TPtr>::deconstify(void) const
+  typename ntree_postfix_iterator<T,TRef,TPtr>::iterator ntree_postfix_iterator<T,TRef,TPtr>::deconstify(void) const
   {
     return ntree_postfix_iterator<T,T&,T*>(m_iterator);
   }
@@ -392,25 +392,25 @@ namespace stlplus
   }
 
   template<typename T, typename TRef, typename TPtr>
-  bool ntree_postfix_iterator<T,TRef,TPtr>::operator == (const TYPENAME ntree_postfix_iterator<T,TRef,TPtr>::this_iterator& r) const
+  bool ntree_postfix_iterator<T,TRef,TPtr>::operator == (const typename ntree_postfix_iterator<T,TRef,TPtr>::this_iterator& r) const
   {
     return m_iterator == r.m_iterator;
   }
 
   template<typename T, typename TRef, typename TPtr>
-  bool ntree_postfix_iterator<T,TRef,TPtr>::operator != (const TYPENAME ntree_postfix_iterator<T,TRef,TPtr>::this_iterator& r) const
+  bool ntree_postfix_iterator<T,TRef,TPtr>::operator != (const typename ntree_postfix_iterator<T,TRef,TPtr>::this_iterator& r) const
   {
     return m_iterator != r.m_iterator;
   }
 
   template<typename T, typename TRef, typename TPtr>
-  bool ntree_postfix_iterator<T,TRef,TPtr>::operator < (const TYPENAME ntree_postfix_iterator<T,TRef,TPtr>::this_iterator& r) const
+  bool ntree_postfix_iterator<T,TRef,TPtr>::operator < (const typename ntree_postfix_iterator<T,TRef,TPtr>::this_iterator& r) const
   {
     return m_iterator < r.m_iterator;
   }
 
   template<typename T, typename TRef, typename TPtr>
-  TYPENAME ntree_postfix_iterator<T,TRef,TPtr>::this_iterator& ntree_postfix_iterator<T,TRef,TPtr>::operator ++ (void)
+  typename ntree_postfix_iterator<T,TRef,TPtr>::this_iterator& ntree_postfix_iterator<T,TRef,TPtr>::operator ++ (void)
     throw(null_dereference,end_dereference)
   {
     // pre-increment operator
@@ -432,7 +432,7 @@ namespace stlplus
     else
     {
       // otherwise find which index the old node was relative to this node
-      TYPENAME std::vector<ntree_node<T>*>::iterator found =
+      typename std::vector<ntree_node<T>*>::iterator found =
         std::find(parent->m_children.begin(), parent->m_children.end(), old_node);
       // if this was found, then see if there is another
       found++;
@@ -454,7 +454,7 @@ namespace stlplus
   }
 
   template<typename T, typename TRef, typename TPtr>
-  TYPENAME ntree_postfix_iterator<T,TRef,TPtr>::this_iterator ntree_postfix_iterator<T,TRef,TPtr>::operator ++ (int)
+  typename ntree_postfix_iterator<T,TRef,TPtr>::this_iterator ntree_postfix_iterator<T,TRef,TPtr>::operator ++ (int)
     throw(null_dereference,end_dereference)
   {
     // post-increment is defined in terms of the pre-increment
@@ -464,14 +464,14 @@ namespace stlplus
   }
 
   template<typename T, typename TRef, typename TPtr>
-  TYPENAME ntree_postfix_iterator<T,TRef,TPtr>::reference ntree_postfix_iterator<T,TRef,TPtr>::operator*(void) const
+  typename ntree_postfix_iterator<T,TRef,TPtr>::reference ntree_postfix_iterator<T,TRef,TPtr>::operator*(void) const
     throw(null_dereference,end_dereference)
   {
     return m_iterator.operator*();
   }
 
   template<typename T, typename TRef, typename TPtr>
-  TYPENAME ntree_postfix_iterator<T,TRef,TPtr>::pointer ntree_postfix_iterator<T,TRef,TPtr>::operator->(void) const
+  typename ntree_postfix_iterator<T,TRef,TPtr>::pointer ntree_postfix_iterator<T,TRef,TPtr>::operator->(void) const
     throw(null_dereference,end_dereference)
   {
     return m_iterator.operator->();
@@ -533,7 +533,7 @@ namespace stlplus
   }
 
   template<typename T>
-  unsigned ntree<T>::size(const TYPENAME ntree<T>::const_iterator& i) const
+  unsigned ntree<T>::size(const typename ntree<T>::const_iterator& i) const
     throw(wrong_object,null_dereference,end_dereference)
   {
     i.assert_valid(this);
@@ -541,7 +541,7 @@ namespace stlplus
   }
 
   template<typename T>
-  unsigned ntree<T>::size(const TYPENAME ntree<T>::iterator& i)
+  unsigned ntree<T>::size(const typename ntree<T>::iterator& i)
     throw(wrong_object,null_dereference,end_dereference)
   {
     i.assert_valid(this);
@@ -549,7 +549,7 @@ namespace stlplus
   }
 
   template<typename T>
-  unsigned ntree<T>::depth(const TYPENAME ntree<T>::const_iterator& i) const
+  unsigned ntree<T>::depth(const typename ntree<T>::const_iterator& i) const
     throw(wrong_object,null_dereference,end_dereference)
   {
     i.assert_valid(this);
@@ -557,7 +557,7 @@ namespace stlplus
   }
 
   template<typename T>
-  unsigned ntree<T>::depth(const TYPENAME ntree<T>::iterator& i)
+  unsigned ntree<T>::depth(const typename ntree<T>::iterator& i)
     throw(wrong_object,null_dereference,end_dereference)
   {
     i.assert_valid(this);
@@ -565,55 +565,83 @@ namespace stlplus
   }
 
   template<typename T>
-  TYPENAME ntree<T>::const_iterator ntree<T>::root(void) const
+  typename ntree<T>::const_iterator ntree<T>::root(void) const
   {
     if (!m_root) return ntree_iterator<T,const T&,const T*>(this);
     return ntree_iterator<T,const T&,const T*>(m_root);
   }
 
   template<typename T>
-  TYPENAME ntree<T>::iterator ntree<T>::root(void)
+  typename ntree<T>::iterator ntree<T>::root(void)
   {
     if (!m_root) return ntree_iterator<T,T&,T*>(this);
     return ntree_iterator<T,T&,T*>(m_root);
   }
 
   template<typename T>
-  unsigned ntree<T>::children(const TYPENAME ntree<T>::const_iterator& i) const
+  unsigned ntree<T>::children(const typename ntree<T>::const_iterator& i) const
     throw(wrong_object,null_dereference,end_dereference)
   {
     i.assert_valid(this);
-    return i.node()->m_children.size();
+    return static_cast<unsigned>(i.node()->m_children.size());
   }
 
   template<typename T>
-  unsigned ntree<T>::children(const ntree_iterator<T,T&,T*>& i)
+  unsigned ntree<T>::children(const typename ntree<T>::iterator& i)
     throw(wrong_object,null_dereference,end_dereference)
   {
     i.assert_valid(this);
-    return i.node()->m_children.size();
+    return static_cast<unsigned>(i.node()->m_children.size());
   }
 
   template<typename T>
-  TYPENAME ntree<T>::const_iterator ntree<T>::child(const TYPENAME ntree<T>::const_iterator& i, unsigned child) const
+  typename ntree<T>::const_iterator ntree<T>::child(const typename ntree<T>::const_iterator& i, unsigned child) const
     throw(wrong_object,null_dereference,end_dereference,std::out_of_range)
   {
     i.assert_valid(this);
-    if (child >= children(i)) throw std::out_of_range("stlplus::ntree");
+    if (child >= children(i)) throw std::out_of_range("stlplus::ntree::child - child out of range");
     return ntree_iterator<T,const T&,const T*>(i.node()->m_children[child]);
   }
 
   template<typename T>
-  TYPENAME ntree<T>::iterator ntree<T>::child(const TYPENAME ntree<T>::iterator& i, unsigned child)
+  typename ntree<T>::iterator ntree<T>::child(const typename ntree<T>::iterator& i, unsigned child)
     throw(wrong_object,null_dereference,end_dereference,std::out_of_range)
   {
     i.assert_valid(this);
-    if (child >= children(i)) throw std::out_of_range("stlplus::ntree");
+    if (child >= children(i)) throw std::out_of_range("stlplus::ntree::child - child out of range");
     return ntree_iterator<T,T&,T*>(i.node()->m_children[child]);
   }
 
   template<typename T>
-  TYPENAME ntree<T>::const_iterator ntree<T>::parent(const TYPENAME ntree<T>::const_iterator& i) const
+  unsigned ntree<T>::child_offset(const typename ntree<T>::const_iterator& root, const typename ntree<T>::const_iterator& child) const
+    throw(wrong_object,null_dereference,end_dereference)
+  {
+    root.assert_valid(this);
+    child.assert_valid(this);
+    ntree_node<T>* root_node = root.node();
+    ntree_node<T>* child_node = child.node();
+    for (unsigned offset = 0; offset < static_cast<unsigned>(root_node->m_children.size()); ++offset)
+      if (root_node->m_children[offset] == child_node)
+        return offset;
+    return static_cast<unsigned>(-1);
+  }
+
+  template<typename T>
+  unsigned ntree<T>::child_offset(const typename ntree<T>::iterator& root, const typename ntree<T>::iterator& child)
+    throw(wrong_object,null_dereference,end_dereference)
+  {
+    root.assert_valid(this);
+    child.assert_valid(this);
+    ntree_node<T>* root_node = root.node();
+    ntree_node<T>* child_node = child.node();
+    for (unsigned offset = 0; offset < static_cast<unsigned>(root_node->m_children.size()); ++offset)
+      if (root_node->m_children[offset] == child_node)
+        return offset;
+    return static_cast<unsigned>(-1);
+  }
+
+  template<typename T>
+  typename ntree<T>::const_iterator ntree<T>::parent(const typename ntree<T>::const_iterator& i) const
     throw(wrong_object,null_dereference,end_dereference)
   {
     i.assert_valid(this);
@@ -623,7 +651,7 @@ namespace stlplus
   }
 
   template<typename T>
-  TYPENAME ntree<T>::iterator ntree<T>::parent(const TYPENAME ntree<T>::iterator& i)
+  typename ntree<T>::iterator ntree<T>::parent(const typename ntree<T>::iterator& i)
     throw(wrong_object,null_dereference,end_dereference)
   {
     i.assert_valid(this);
@@ -633,55 +661,95 @@ namespace stlplus
   }
 
   template<typename T>
-  TYPENAME ntree<T>::const_prefix_iterator ntree<T>::prefix_begin(void) const
+  typename ntree<T>::const_prefix_iterator ntree<T>::prefix_begin(void) const
   {
     return ntree_prefix_iterator<T,const T&,const T*>(root());
   }
 
   template<typename T>
-  TYPENAME ntree<T>::prefix_iterator ntree<T>::prefix_begin(void)
+  typename ntree<T>::prefix_iterator ntree<T>::prefix_begin(void)
   {
     return ntree_prefix_iterator<T,T&,T*>(root());
   }
 
   template<typename T>
-  TYPENAME ntree<T>::const_prefix_iterator ntree<T>::prefix_end(void) const
+  typename ntree<T>::const_prefix_iterator ntree<T>::prefix_end(void) const
   {
     return ntree_prefix_iterator<T,const T&,const T*>(ntree_iterator<T,const T&,const T*>(this));
   }
 
   template<typename T>
-  TYPENAME ntree<T>::prefix_iterator ntree<T>::prefix_end(void)
+  typename ntree<T>::prefix_iterator ntree<T>::prefix_end(void)
   {
     return ntree_prefix_iterator<T,T&,T*>(ntree_iterator<T,T&,T*>(this));
   }
 
   template<typename T>
-  TYPENAME ntree<T>::const_postfix_iterator ntree<T>::postfix_begin(void) const
+  typename ntree<T>::const_postfix_iterator ntree<T>::postfix_begin(void) const
   {
     return ntree_postfix_iterator<T,const T&,const T*>(root());
   }
 
   template<typename T>
-  TYPENAME ntree<T>::postfix_iterator ntree<T>::postfix_begin(void)
+  typename ntree<T>::postfix_iterator ntree<T>::postfix_begin(void)
   {
     return ntree_postfix_iterator<T,T&,T*>(root());
   }
 
   template<typename T>
-  TYPENAME ntree<T>::const_postfix_iterator ntree<T>::postfix_end(void) const
+  typename ntree<T>::const_postfix_iterator ntree<T>::postfix_end(void) const
   {
     return ntree_postfix_iterator<T,const T&,const T*>(ntree_iterator<T,const T&,const T*>(this));
   }
 
   template<typename T>
-  TYPENAME ntree<T>::postfix_iterator ntree<T>::postfix_end(void)
+  typename ntree<T>::postfix_iterator ntree<T>::postfix_end(void)
   {
     return ntree_postfix_iterator<T,T&,T*>(ntree_iterator<T,T&,T*>(this));
   }
 
   template<typename T>
-  TYPENAME ntree<T>::iterator ntree<T>::insert(const T& data)
+  typename ntree<T>::iterator_vector ntree<T>::breadth_first_traversal(void)
+  {
+    typename ntree<T>::iterator_vector result;
+    if (m_root)
+    {
+      // seed the traversal the the root node
+      result.push_back(root());
+      // now walk through the result, appending each node's children
+      // allow for the vector to reallocate, so don't use vector iterators
+      for (unsigned i = 0; i < result.size(); i++)
+      {
+        unsigned count = children(result[i]);
+        for (unsigned c = 0; c < count; c++)
+          result.push_back(child(result[i], c));
+      }
+    }
+    return result;
+  }
+
+  template<typename T>
+  typename ntree<T>::const_iterator_vector ntree<T>::breadth_first_traversal(void) const
+  {
+    typename ntree<T>::const_iterator_vector result;
+    if (m_root)
+    {
+      // seed the traversal the the root node
+      result.push_back(root());
+      // now walk through the result, appending each node's children
+      // allow for the vector to reallocate, so don't use vector iterators
+      for (unsigned i = 0; i < result.size(); i++)
+      {
+        unsigned count = children(result[i]);
+        for (unsigned c = 0; c < count; c++)
+          result.push_back(child(result[i], c));
+      }
+    }
+    return result;
+  }
+
+  template<typename T>
+  typename ntree<T>::iterator ntree<T>::insert(const T& data)
   {
     // insert a new node as the root
     erase();
@@ -690,7 +758,7 @@ namespace stlplus
   }
 
   template<typename T>
-  TYPENAME ntree<T>::iterator ntree<T>::insert(const TYPENAME ntree<T>::iterator& i, unsigned offset, const T& data)
+  typename ntree<T>::iterator ntree<T>::insert(const typename ntree<T>::iterator& i, unsigned offset, const T& data)
     throw(wrong_object,null_dereference,end_dereference,std::out_of_range)
   {
     // if i is the end iterator, this means insert a new root
@@ -698,7 +766,7 @@ namespace stlplus
     //   return insert(data);
     // otherwise, insert a new child
     i.assert_valid(this);
-    if (offset > children(i)) throw std::out_of_range("stlplus::ntree");
+    if (offset > children(i)) throw std::out_of_range("stlplus::ntree::insert - offset out of range");
     ntree_node<T>* new_node = new ntree_node<T>(this,data);
     i.node()->m_children.insert(i.node()->m_children.begin()+offset,new_node);
     new_node->m_parent = i.node();
@@ -706,21 +774,21 @@ namespace stlplus
   }
 
   template<typename T>
-  TYPENAME ntree<T>::iterator ntree<T>::insert(const TYPENAME ntree<T>::iterator& i, const T& data)
+  typename ntree<T>::iterator ntree<T>::insert(const typename ntree<T>::iterator& i, const T& data)
     throw(wrong_object,null_dereference,end_dereference)
   {
     return insert(i, children(i), data);
   }
 
   template<typename T>
-  TYPENAME ntree<T>::iterator ntree<T>::append(const TYPENAME ntree<T>::iterator& i, const T& data)
+  typename ntree<T>::iterator ntree<T>::append(const typename ntree<T>::iterator& i, const T& data)
     throw(wrong_object,null_dereference,end_dereference)
   {
     return insert(i, children(i), data);
   }
 
   template<typename T>
-  TYPENAME ntree<T>::iterator ntree<T>::insert(const ntree<T>& tree)
+  typename ntree<T>::iterator ntree<T>::insert(const ntree<T>& tree)
   {
     // insert a whole tree as root
     erase();
@@ -729,12 +797,12 @@ namespace stlplus
   }
 
   template<typename T>
-  TYPENAME ntree<T>::iterator ntree<T>::insert(const TYPENAME ntree<T>::iterator& i, unsigned offset, const ntree<T>& tree)
+  typename ntree<T>::iterator ntree<T>::insert(const typename ntree<T>::iterator& i, unsigned offset, const ntree<T>& tree)
     throw(wrong_object,null_dereference,end_dereference,std::out_of_range)
   {
     // insert a whole tree as a child of i
     i.assert_valid(this);
-    if (offset > children(i)) throw std::out_of_range("stlplus::ntree");
+    if (offset > children(i)) throw std::out_of_range("stlplus::ntree::insert - offset out of range");
     ntree_node<T>* new_node = ntree_copy(this, tree.m_root);
     i.node()->m_children.insert(i.node()->m_children.begin()+offset,new_node);
     new_node->m_parent = i.node();
@@ -742,21 +810,21 @@ namespace stlplus
   }
 
   template<typename T>
-  TYPENAME ntree<T>::iterator ntree<T>::insert(const TYPENAME ntree<T>::iterator& i, const ntree<T>& tree)
+  typename ntree<T>::iterator ntree<T>::insert(const typename ntree<T>::iterator& i, const ntree<T>& tree)
     throw(wrong_object,null_dereference,end_dereference)
   {
     return insert(i, children(i), tree);
   }
 
   template<typename T>
-  TYPENAME ntree<T>::iterator ntree<T>::append(const TYPENAME ntree<T>::iterator& i, const ntree<T>& tree)
+  typename ntree<T>::iterator ntree<T>::append(const typename ntree<T>::iterator& i, const ntree<T>& tree)
     throw(wrong_object,null_dereference,end_dereference)
   {
     return insert(i, children(i), tree);
   }
 
   template<typename T>
-  TYPENAME ntree<T>::iterator ntree<T>::move(ntree<T>& tree)
+  typename ntree<T>::iterator ntree<T>::move(ntree<T>& tree)
   {
     // insert a whole tree as root, removing it from source
     erase();
@@ -767,12 +835,12 @@ namespace stlplus
   }
 
   template<typename T>
-  TYPENAME ntree<T>::iterator ntree<T>::move(const TYPENAME ntree<T>::iterator& i, unsigned offset, ntree<T>& tree)
+  typename ntree<T>::iterator ntree<T>::move(const typename ntree<T>::iterator& i, unsigned offset, ntree<T>& tree)
     throw(wrong_object,null_dereference,end_dereference,std::out_of_range)
   {
     // insert a whole tree as a child of i
     i.assert_valid(this);
-    if (offset > children(i)) throw std::out_of_range("stlplus::ntree");
+    if (offset > children(i)) throw std::out_of_range("stlplus::ntree::move - offset out of range");
     ntree_node<T>* new_node = tree.m_root;
     tree.m_root = 0;
     if (new_node) new_node->change_owner(this);
@@ -782,14 +850,14 @@ namespace stlplus
   }
 
   template<typename T>
-  TYPENAME ntree<T>::iterator ntree<T>::move(const TYPENAME ntree<T>::iterator& i, ntree<T>& tree)
+  typename ntree<T>::iterator ntree<T>::move(const typename ntree<T>::iterator& i, ntree<T>& tree)
     throw(wrong_object,null_dereference,end_dereference)
   {
     return move(i, children(i), tree);
   }
 
   template<typename T>
-  TYPENAME ntree<T>::iterator ntree<T>::push(const TYPENAME ntree<T>::iterator& node, const T& data)
+  typename ntree<T>::iterator ntree<T>::push(const typename ntree<T>::iterator& node, const T& data)
     throw(wrong_object,null_dereference,end_dereference)
   {
     // insert a new node to replace the existing node in the tree
@@ -818,14 +886,14 @@ namespace stlplus
   }
 
   template<typename T>
-  void ntree<T>::pop(const TYPENAME ntree<T>::iterator& parent, unsigned offset)
+  void ntree<T>::pop(const typename ntree<T>::iterator& parent, unsigned offset)
     throw(wrong_object,null_dereference,end_dereference)
   {
     // inverse of push
     // removes the specified child of the parent node, adding its children to the parent node at the same offset
     parent.assert_valid(this);
     ntree_node<T>* node = parent.node();
-    if (offset >= node->m_children.size()) throw std::out_of_range("stlplus::ntree");
+    if (offset >= node->m_children.size()) throw std::out_of_range("stlplus::ntree::pop - offset out of range");
     // move the grandchildren first
     ntree_node<T>* child = parent.node()->m_children[offset];
     while (!child->m_children.empty())
@@ -849,7 +917,7 @@ namespace stlplus
   }
 
   template<typename T>
-  void ntree<T>::erase(const TYPENAME ntree<T>::iterator& i)
+  void ntree<T>::erase(const typename ntree<T>::iterator& i)
     throw(wrong_object,null_dereference,end_dereference)
   {
     if (!i.end())
@@ -868,7 +936,7 @@ namespace stlplus
       {
         ntree_node<T>* parent = node->m_parent;
         // impossible for parent to be null - should assert this
-        TYPENAME std::vector<ntree_node<T>*>::iterator found = 
+        typename std::vector<ntree_node<T>*>::iterator found = 
           std::find(parent->m_children.begin(), parent->m_children.end(), node);
         // impossible for find to fail - should assert this
         parent->m_children.erase(found);
@@ -877,11 +945,34 @@ namespace stlplus
     }
   }
 
+  // erase a child designated by an offset into the node's children
   template<typename T>
-  void ntree<T>::erase(const TYPENAME ntree<T>::iterator& i, unsigned offset)
+  void ntree<T>::erase_child(const typename ntree<T>::iterator& i, unsigned offset)
     throw(wrong_object,null_dereference,end_dereference,std::out_of_range)
   {
-    erase(child(i, offset));
+    if (offset >= children(i)) throw std::out_of_range("stlplus::ntree::erase_child - offset out of range");
+    // unhook from the children array
+    ntree_node<T>* node = i.node()->m_children[offset];
+    i.node()->m_children.erase(i.node()->m_children.begin() + offset);
+    // now delete the subtree
+    delete node;
+  }
+
+  // synonym of above
+  template<typename T>
+  void ntree<T>::erase(const typename ntree<T>::iterator& i, unsigned offset)
+    throw(wrong_object,null_dereference,end_dereference,std::out_of_range)
+  {
+    erase_child(i, offset);
+  }
+
+  // erase all children
+  template<typename T>
+  void ntree<T>::erase_children(const typename ntree<T>::iterator& i)
+    throw(wrong_object,null_dereference,end_dereference,std::out_of_range)
+  {
+    while(children(i) > 0)
+      erase_child(i, 0);
   }
 
   template<typename T>
@@ -891,7 +982,7 @@ namespace stlplus
   }
 
   template<typename T>
-  ntree<T> ntree<T>::subtree(const TYPENAME ntree<T>::iterator& i)
+  ntree<T> ntree<T>::subtree(const typename ntree<T>::iterator& i)
     throw(wrong_object,null_dereference,end_dereference)
   {
     ntree<T> result;
@@ -904,7 +995,7 @@ namespace stlplus
   }
 
   template<typename T>
-  ntree<T> ntree<T>::subtree(const TYPENAME ntree<T>::iterator& i, unsigned offset)
+  ntree<T> ntree<T>::subtree(const typename ntree<T>::iterator& i, unsigned offset)
     throw(wrong_object,null_dereference,end_dereference,std::out_of_range)
   {
     return subtree(child(i, offset));
@@ -917,7 +1008,7 @@ namespace stlplus
   }
 
   template<typename T>
-  ntree<T> ntree<T>::cut(const TYPENAME ntree<T>::iterator& i)
+  ntree<T> ntree<T>::cut(const typename ntree<T>::iterator& i)
     throw(wrong_object,null_dereference,end_dereference)
   {
     ntree<T> result;
@@ -934,7 +1025,7 @@ namespace stlplus
       {
         ntree_node<T>* parent = node->m_parent;
         // impossible for parent to be null - should assert this
-        TYPENAME std::vector<ntree_node<T>*>::iterator found = 
+        typename std::vector<ntree_node<T>*>::iterator found = 
           std::find(parent->m_children.begin(), parent->m_children.end(), node);
         // impossible for find to fail - should assert this
         result.m_root = *found;
@@ -943,17 +1034,50 @@ namespace stlplus
       if (result.m_root)
       {
         result.m_root->m_parent = 0;
-        result.m_root->set_new_owner(&result);
+        result.m_root->change_owner(&result);
       }
     }
     return result;
   }
 
   template<typename T>
-  ntree<T> ntree<T>::cut(const TYPENAME ntree<T>::iterator& i, unsigned offset)
+  ntree<T> ntree<T>::cut(const typename ntree<T>::iterator& i, unsigned offset)
     throw(wrong_object,null_dereference,end_dereference,std::out_of_range)
   {
     return cut(child(i, offset));
+  }
+
+  template<typename T>
+  void ntree<T>::reorder(const typename ntree<T>::iterator& node, unsigned child_offset, unsigned new_offset)
+      throw(wrong_object,null_dereference,end_dereference,std::out_of_range)
+  {
+    // check preconditions
+    node.assert_valid(this);
+    if (child_offset >= children(node)) throw std::out_of_range("stlplus::ntree::reorder - child offset out of range");
+    if (new_offset >= children(node)) throw std::out_of_range("stlplus::ntree::reorder - new offset out of range");
+    // do nothing if the offsets are the same, i.e. move to the same place
+    if (new_offset == child_offset) return;
+    // perform the move
+    // Note: this is not a swap operation, but a remove then re-insert which preserves the order of the remaining children
+    ntree_node<T>* node_node = node.node();
+    ntree_node<T>* child_node = node_node->m_children[child_offset];
+    node_node->m_children.erase(node_node->m_children.begin() + child_offset);
+    node_node->m_children.insert(node_node->m_children.begin() + new_offset, child_node);
+  }
+
+  template<typename T>
+  void ntree<T>::swap(const typename ntree<T>::iterator& node, unsigned child1, unsigned child2)
+      throw(wrong_object,null_dereference,end_dereference,std::out_of_range)
+  {
+    // check preconditions
+    node.assert_valid(this);
+    if (child1 >= children(node)) throw std::out_of_range("stlplus::ntree::reorder - child1 offset out of range");
+    if (child2 >= children(node)) throw std::out_of_range("stlplus::ntree::reorder - child2 offset out of range");
+    // do nothing if the offsets are the same, i.e. move to the same place
+    if (child1 == child2) return;
+    // perform the move
+    ntree_node<T>* node_node = node.node();
+    std::swap(node_node->m_children[child1], node_node->m_children[child2]);
   }
 
   ////////////////////////////////////////////////////////////////////////////////

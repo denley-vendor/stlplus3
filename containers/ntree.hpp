@@ -17,6 +17,8 @@
 #include "containers_fixes.hpp"
 #include "exceptions.hpp"
 #include "safe_iterator.hpp"
+#include <vector>
+#include <iterator>
 
 namespace stlplus
 {
@@ -39,7 +41,8 @@ namespace stlplus
   // the root node then you get a null iterator.
 
   template<typename T, typename TRef, typename TPtr>
-  class ntree_iterator : public safe_iterator<ntree<T>,ntree_node<T> >
+  class ntree_iterator :
+    public safe_iterator<ntree<T>,ntree_node<T> >
   {
   public:
     // local type definitions
@@ -96,7 +99,8 @@ namespace stlplus
   // require a simple iterator.
 
   template<typename T, typename TRef, typename TPtr>
-  class ntree_prefix_iterator
+  class ntree_prefix_iterator : 
+    public std::iterator<std::forward_iterator_tag, T, std::ptrdiff_t, TPtr, TRef>
   {
   public:
     typedef ntree_prefix_iterator<T,T&,T*>             iterator;
@@ -127,7 +131,7 @@ namespace stlplus
     iterator deconstify(void) const;
 
     // generate a simple iterator from a traversal iterator
-    ntree_iterator<T,TRef,TPtr> simplify(void) const;
+    simple_iterator simplify(void) const;
 
     // tests useful for putting iterators into other STL structures and for testing whether iteration has completed
     bool operator == (const this_iterator& r) const;
@@ -154,17 +158,18 @@ namespace stlplus
     friend class ntree_iterator<T,TRef,TPtr>;
 
   private:
-    ntree_iterator<T,TRef,TPtr> m_iterator;
+    simple_iterator m_iterator;
 
-    explicit ntree_prefix_iterator(const ntree_iterator<T,TRef,TPtr>& i);
-    const ntree_iterator<T,TRef,TPtr>& get_iterator(void) const;
-    ntree_iterator<T,TRef,TPtr>& get_iterator(void);
+    explicit ntree_prefix_iterator(const simple_iterator& i);
+    const simple_iterator& get_iterator(void) const;
+    simple_iterator& get_iterator(void);
   };
 
   ////////////////////////////////////////////////////////////////////////////////
 
   template<typename T, typename TRef, typename TPtr>
-  class ntree_postfix_iterator
+  class ntree_postfix_iterator :
+    public std::iterator<std::forward_iterator_tag, T, std::ptrdiff_t, TPtr, TRef>
   {
   public:
     typedef ntree_postfix_iterator<T,T&,T*>             iterator;
@@ -195,7 +200,7 @@ namespace stlplus
     iterator deconstify(void) const;
 
     // generate a simple iterator from a traversal iterator
-    ntree_iterator<T,TRef,TPtr> simplify(void) const;
+    simple_iterator simplify(void) const;
 
     // tests useful for putting iterators into other STL structures and for testing whether iteration has completed
     bool operator == (const this_iterator& r) const;
@@ -222,11 +227,11 @@ namespace stlplus
     friend class ntree_iterator<T,TRef,TPtr>;
 
   private:
-    ntree_iterator<T,TRef,TPtr> m_iterator;
+    simple_iterator m_iterator;
 
-    explicit ntree_postfix_iterator(const ntree_iterator<T,TRef,TPtr>& i);
-    const ntree_iterator<T,TRef,TPtr>& get_iterator(void) const;
-    ntree_iterator<T,TRef,TPtr>& get_iterator(void);
+    explicit ntree_postfix_iterator(const simple_iterator& i);
+    const simple_iterator& get_iterator(void) const;
+    simple_iterator& get_iterator(void);
   };
 
   ////////////////////////////////////////////////////////////////////////////////
@@ -248,6 +253,9 @@ namespace stlplus
 
     typedef ntree_postfix_iterator<T,T&,T*> postfix_iterator;
     typedef ntree_postfix_iterator<T,const T&,const T*> const_postfix_iterator;
+
+    typedef std::vector<iterator> iterator_vector;
+    typedef std::vector<const_iterator> const_iterator_vector;
 
     //////////////////////////////////////////////////////////////////////////////
     // Constructors, destructors and copies
@@ -281,19 +289,29 @@ namespace stlplus
     //////////////////////////////////////////////////////////////////////////////
     // direct traversal
 
+    // get the root node's iterator to start the traversal
     const_iterator root(void) const;
     iterator root(void);
 
+    // get the number of children of this node, so they can be accessed 0..n-1
     unsigned children(const const_iterator& node) const
       throw(wrong_object,null_dereference,end_dereference);
     unsigned children(const iterator& node)
       throw(wrong_object,null_dereference,end_dereference);
 
+    // get the iterator for a child given it's offset into the children array
     const_iterator child(const const_iterator& node, unsigned child) const
       throw(wrong_object,null_dereference,end_dereference,std::out_of_range);
     iterator child(const iterator& node, unsigned child)
       throw(wrong_object,null_dereference,end_dereference,std::out_of_range);
 
+    // search a node's children array to find a child given its iterator
+    unsigned child_offset(const const_iterator& node, const const_iterator& child) const
+      throw(wrong_object,null_dereference,end_dereference);
+    unsigned child_offset(const iterator& node, const iterator& child)
+      throw(wrong_object,null_dereference,end_dereference);
+
+    // go back up the tree by getting the iterator to a node's parent - the parent of root is null
     const_iterator parent(const const_iterator& node) const
       throw(wrong_object,null_dereference,end_dereference);
     iterator parent(const iterator& node)
@@ -313,7 +331,15 @@ namespace stlplus
     postfix_iterator postfix_end(void);
 
     //////////////////////////////////////////////////////////////////////////////
+    // breadth-first traversal
+
+    const_iterator_vector breadth_first_traversal(void) const;
+    iterator_vector breadth_first_traversal(void);
+
+    //////////////////////////////////////////////////////////////////////////////
     // modification
+
+    // insert a node
 
     // discard previous contents and create a new root node
     iterator insert(const T&);
@@ -327,6 +353,8 @@ namespace stlplus
     iterator append(const iterator& node, const T&) 
       throw(wrong_object,null_dereference,end_dereference);
 
+    // insert a copy of a subtree
+
     // discard previous contents and copy the tree
     iterator insert(const ntree<T>&);
     // add a copy of the tree as a new child inserted into the node's children at the specified place
@@ -339,6 +367,8 @@ namespace stlplus
     iterator append(const iterator& node, const ntree<T>&)
       throw(wrong_object,null_dereference,end_dereference);
 
+    // insert the subtree without copying
+
     // discard previous contents and move the tree without copying
     // invalidates all iterators to the old tree
     iterator move(ntree<T>&);
@@ -350,6 +380,8 @@ namespace stlplus
     iterator move(const iterator& node, ntree<T>&)
       throw(wrong_object,null_dereference,end_dereference);
 
+    // insert/erase in the middle of a tree
+
     // replace the node with the new value, pushing the old node down to make it the child
     // returns the iterator to the new, pushed node
     iterator push(const iterator& node, const T&) 
@@ -358,14 +390,24 @@ namespace stlplus
     void pop(const iterator& node, unsigned child) 
       throw(wrong_object,null_dereference,end_dereference);
 
+    // erase nodes and subtrees
+
     // erase the whole tree
     void erase(void);
     // erase the node and all its children
     void erase(const iterator& node)
       throw(wrong_object,null_dereference,end_dereference);
     // erase the specified child
+    void erase_child(const iterator& node, unsigned child)
+      throw(wrong_object,null_dereference,end_dereference,std::out_of_range);
+    // synonym for above
     void erase(const iterator& node, unsigned child)
       throw(wrong_object,null_dereference,end_dereference,std::out_of_range);
+    // erase all children of the node, but leave the node
+    void erase_children(const iterator& node)
+      throw(wrong_object,null_dereference,end_dereference,std::out_of_range);
+
+    // extract a subtree as a copy leaving the original tree unchanged
 
     // get a copy of the tree as a tree
     ntree<T> subtree(void);
@@ -376,6 +418,8 @@ namespace stlplus
     ntree<T> subtree(const iterator& node, unsigned child)
       throw(wrong_object,null_dereference,end_dereference,std::out_of_range);
 
+    // extract a subtree by moving the contents
+
     // move the whole tree to make a new tree
     ntree<T> cut(void);
     // move the subtree to make a new tree with the specified node as root
@@ -383,6 +427,20 @@ namespace stlplus
       throw(wrong_object,null_dereference,end_dereference);
     // move the subtree to make a new tree with the specified child as root
     ntree<T> cut(const iterator& node, unsigned child)
+      throw(wrong_object,null_dereference,end_dereference,std::out_of_range);
+
+    // re-ordering of child nodes
+
+    // reorder the children of a node
+    // moves the child at the given offset to the new offset, reordering its siblings to make room
+    // this preserves the order of the remaining siblings but not their positions e.g. reorder([a,b,c,d],0,3) = [b,c,d,a]
+    void reorder(const iterator& node, unsigned child_offset, unsigned new_offset)
+      throw(wrong_object,null_dereference,end_dereference,std::out_of_range);
+
+    // swap two children of a node
+    // swaps the child at the given offset with the new offset
+    // this preserves the position of the remaining siblings e.g. swap([a,b,c,d],0,3) = [d,b,c,a]
+    void swap(const iterator& node, unsigned child1, unsigned child2)
       throw(wrong_object,null_dereference,end_dereference,std::out_of_range);
 
     //////////////////////////////////////////////////////////////////////////////

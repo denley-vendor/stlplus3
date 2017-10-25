@@ -19,19 +19,40 @@ namespace stlplus
   // STLplus version in the form "STLplus v3.0" - see version.hpp for a way of getting just the version number
   std::string stlplus_version(void)
   {
-    return std::string("STLplus v") + version();
+    std::string result = std::string("STLplus v") + version();
+    if (version() == std::string("3.14"))
+      result += " (pi)";
+    return result;
   }
 
-  // platform is the target operating system in the form "Windows" or "Generic Unix"
+  // calculate the word size dynamically by using the knowledge that ptrdiff_t is always a whole word
+  int platform_bits(void)
+  {
+    return sizeof(std::ptrdiff_t) * 8;
+  }
+
+  // platform name is the target operating system in the form "Windows" or "Posix"
+  std::string platform_name(void)
+  {
+#if defined _WIN64 || defined _WIN32
+    return std::string("Windows");
+#elif defined __CYGWIN__
+    return std::string("Cygwin");
+#elif defined __gnu_linux__
+    return std::string("GNU/Linux");
+#elif defined __FreeBSD__
+    return std::string("FreeBSD");
+#else
+    // at present there are no distinctions made between other different Unix platforms so
+    // they all map onto the generic platform
+    return std::string("Posix");
+#endif
+  }
+
+  // platform is the target operating system and its bit size in the form "Windows 32-bit" or "Generic 64-bit"
   std::string platform(void)
   {
-#if defined _WIN32
-    return std::string("Windows");
-#else
-    // at present there are no variations between different Unix platforms so
-    // they all map onto the generic Unix platform
-    return std::string("Generic Unix");
-#endif
+    return dformat("%s %d-bit", platform_name().c_str(), platform_bits());
   }
 
   // compiler_name is the short name of the compiler, e.g. "gcc" or "MSVC"
@@ -58,11 +79,11 @@ namespace stlplus
 #elif defined __BORLANDC__
     return dformat("%d.%d%d",__BORLANDC__/256,__BORLANDC__/16%16,__BORLANDC__%16);
 #else
-    return std::string();
+    return std::string("?.?");
 #endif
   }
 
-  // compiler is the compilation system and version above combined into a human- readable form e.g. "gcc v3.4"
+  // compiler is the compilation system and version above combined into a human-readable form e.g. "gcc v3.4"
   std::string compiler(void)
   {
     return compiler_name() + std::string(" v") + compiler_version();
@@ -79,6 +100,7 @@ namespace stlplus
 
   }
 
+  // a string containing all the information
   std::string build(void)
   {
     return stlplus_version() + ", " + platform() + ", " + compiler() + ", " + variant();

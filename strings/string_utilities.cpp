@@ -8,7 +8,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 #include "string_utilities.hpp"
 #include "string_basic.hpp"
-#include <algorithm>
 #include <stdlib.h>
 #include <ctype.h>
 #include <stdarg.h>
@@ -18,38 +17,68 @@ namespace stlplus
 {
 
   // added as a local copy to break the dependency on the portability library
+  static int local_vdprintf(std::string& formatted, const char* format, va_list args)
+  {
+    // Note: cannot reuse a va_list, need to restart it each time it's used
+    // make a copy here - this means the copy is started but not traversed
+    va_list copy_args;
+    va_copy(copy_args, args);
+    // first work out the size of buffer needed to receive the formatted output
+    // do this by having a dummy run with a null buffer
+    int length = vsnprintf(0, 0, format, args);
+    // detect a coding error and give up straight away
+    // TODO - error handling? errno may be set and could be made into an exception
+    if (length < 0)
+    {
+      va_end(copy_args);
+      return length;
+    }
+
+    // allocate a buffer just exactly the right size, adding an extra byto for null termination
+    char* buffer = (char*)malloc(length+1);
+    if (!buffer)
+    {
+      va_end(copy_args);
+      return -1;
+    }
+
+    // now call the print function again to generate the actual formatted string
+    int result = vsnprintf(buffer, length+1, format, copy_args);
+    va_end(copy_args);
+    // TODO - error handling?
+
+    // now append this to the C++ string
+    formatted += buffer;
+    // recover the buffer memory
+    free(buffer);
+    return result;
+  }
+
+  static int local_dprintf(std::string& formatted, const char* format, ...)
+  {
+    va_list args;
+    va_start(args, format);
+    int result = local_vdprintf(formatted, format, args);
+    va_end(args);
+    return result;
+  }
+
+  static std::string local_vdformat(const char* format, va_list args) throw(std::invalid_argument)
+  {
+    std::string formatted;
+    int length = local_vdprintf(formatted, format, args);
+    if (length < 0) throw std::invalid_argument("dprintf");
+    return formatted;
+  }
+
   static std::string local_dformat(const char* format, ...) throw(std::invalid_argument)
   {
     std::string formatted;
     va_list args;
     va_start(args, format);
-#ifdef MSWINDOWS
-    int length = 0;
-    char* buffer = 0;
-    for(int buffer_length = 256; ; buffer_length*=2)
-    {
-      buffer = (char*)malloc(buffer_length);
-      if (!buffer) throw std::invalid_argument("string_utilities");
-      length = _vsnprintf(buffer, buffer_length-1, format, args);
-      if (length >= 0)
-      {
-        buffer[length] = 0;
-        formatted += std::string(buffer);
-        free(buffer);
-        break;
-      }
-      free(buffer);
-    }
-#else
-    char* buffer = 0;
-    int length = vasprintf(&buffer, format, args);
-    if (!buffer) throw std::invalid_argument("string_utilities");
-    if (length >= 0)
-      formatted += std::string(buffer);
-    free(buffer);
-#endif
+    int length = local_vdprintf(formatted, format, args);
     va_end(args);
-    if (length < 0) throw std::invalid_argument("string_utilities");
+    if (length < 0) throw std::invalid_argument("dprintf");
     return formatted;
   }
 
@@ -63,24 +92,24 @@ namespace stlplus
     {
     case align_left:
     {
-      unsigned padding = width>str.size() ? width - str.size() : 0;
-      unsigned i = 0;
+      std::string::size_type padding = width>str.size() ? width - str.size() : 0;
+      std::string::size_type i = 0;
       while (i++ < padding)
         result.insert(result.end(), padch);
       break;
     }
     case align_right:
     {
-      unsigned padding = width>str.size() ? width - str.size() : 0;
-      unsigned i = 0;
+      std::string::size_type padding = width>str.size() ? width - str.size() : 0;
+      std::string::size_type i = 0;
       while (i++ < padding)
         result.insert(result.begin(), padch);
       break;
     }
     case align_centre:
     {
-      unsigned padding = width>str.size() ? width - str.size() : 0;
-      unsigned i = 0;
+      std::string::size_type padding = width>str.size() ? width - str.size() : 0;
+      std::string::size_type i = 0;
       while (i++ < padding/2)
         result.insert(result.end(), padch);
       i--;
@@ -96,39 +125,48 @@ namespace stlplus
 
   ////////////////////////////////////////////////////////////////////////////////
 
-  std::string trim_left(const std::string& val, char flag /*= ' '*/)
+  std::string trim_left(const std::string& val)
   {
     std::string result = val;
-	size_t posFind = result.find_first_not_of(flag);
-	return (posFind == std::string::npos ? "" : result.substr(posFind));
+    while (!result.empty() && isspace(result[0]))
+      result.erase(result.begin());
+    return result;
   }
 
-  std::string trim_right(const std::string& val, char flag /*= ' '*/)
+  std::string trim_right(const std::string& val)
   {
     std::string result = val;
-	size_t posFind = result.find_last_not_of(flag);
-	return (posFind == std::string::npos ? "" : result.substr(0, posFind+1));	
+    while (!result.empty() && isspace(result[result.size()-1]))
+      result.erase(result.end()-1);
+    return result;
   }
 
-  std::string trim(const std::string& val, char flag /*= ' '*/)
+  std::string trim(const std::string& val)
   {
-	  return trim_left(trim_right(val, flag), flag);
+    std::string result = val;
+    while (!result.empty() && isspace(result[0]))
+      result.erase(result.begin());
+    while (!result.empty() && isspace(result[result.size()-1]))
+      result.erase(result.end()-1);
+    return result;
   }
-  
+
   ////////////////////////////////////////////////////////////////////////////////
-  
+
   std::string lowercase(const std::string& val)
   {
-    std::string result = val;
-	std::transform(result.begin(), result.end(), result.begin(), tolower);
-    return result;
+    std::string text = val;
+    for (unsigned i = 0; i < text.size(); i++)
+      text[i] = tolower(text[i]);
+    return text;
   }
 
   std::string uppercase(const std::string& val)
   {
-    std::string result = val;
-	std::transform(result.begin(), result.end(), result.begin(), toupper);
-    return result;
+    std::string text = val;
+    for (unsigned i = 0; i < text.size(); i++)
+      text[i] = toupper(text[i]);
+    return text;
   }
 
   ////////////////////////////////////////////////////////////////////////////////
